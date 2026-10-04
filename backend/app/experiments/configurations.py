@@ -3,16 +3,16 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
-STRATEGIES = ("single_agent", "local", "global")
+STRATEGIES = ("single_agent", "local")
 DISRUPTION_KINDS = ("cell_blockage", "robot_breakdown", "emergency_task", "mixed")
 
 
 @dataclass
 class ExperimentConfig:
-    agent_counts: list[int] = field(default_factory=lambda: [5, 10, 20, 30, 40])
-    densities: list[float] = field(default_factory=lambda: [0.0, 0.05, 0.10, 0.15, 0.20])
+    agent_counts: list[int] = field(default_factory=lambda: [5, 20, 40])
+    densities: list[float] = field(default_factory=lambda: [0.0, 0.10, 0.20])
     disruption_type: str = "cell_blockage"
-    repetitions: int = 20
+    repetitions: int = 5
     seed: int = 0                       # first seed; run r uses seed + r
     seeds: Optional[list[int]] = None   # explicit seed sequence (overrides seed/repetitions)
     strategies: list[str] = field(default_factory=lambda: list(STRATEGIES))

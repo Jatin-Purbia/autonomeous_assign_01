@@ -9,7 +9,7 @@ A working simulation of robots in an automated warehouse. Robots get collision-f
 
 Instead of replanning everyone, the system **repairs only the plans that need it**: it finds the affected robots,
 tries cheap fixes first (wait, shift, detour), lets neighbours **negotiate** when that is not enough, and leaves every
-other plan untouched. Global replanning exists only as a baseline for comparison.
+other plan untouched. Single-agent repair serves as the baseline for comparison.
 
 ![Simulation](docs/screenshots/simulation_repair.png)
 
@@ -20,7 +20,7 @@ other plan untouched. Global replanning exists only as a baseline for comparison
 | `backend/app/domain`, `planning`, `repair`, `simulation` | The engine (no UI dependency): grid, A\*, repair, simulator |
 | `backend/app/api` | FastAPI REST + WebSocket server |
 | `backend/app/experiments` | Batch runner, statistics, table generation |
-| `backend/app/tests` | 75 pytest tests |
+| `backend/app/tests` | 74 pytest tests |
 | `backend/experiment_outputs` | Results of the reported experiments (CSV / JSON) |
 | `frontend/` | Next.js UI: live simulation and experiment dashboard |
 | `docs/` | `architecture.md`, `algorithm.md`, `experiments.md`, per-disruption result tables |
@@ -58,11 +58,11 @@ Open <http://localhost:3000/simulation>, choose a scenario, click **Load scenari
 | 5 | Stress | 30 robots, 12 timed blockages and a breakdown |
 
 You can also block cells, break a robot, add an emergency task, generate random scenarios, switch the repair
-strategy (A / B / C) and scrub the timeline.
+strategy (A / B) and scrub the timeline.
 
 **Reading the picture:** dashed line = original plan, thick solid line = repaired part, faint line = already
 travelled. Red ring = directly affected robot, orange ring = indirectly affected. The right panel shows the
-affected set, negotiation messages, old-vs-new plans, the conflict graph and the event log.
+affected set, negotiation messages, old-vs-new plans and the event log.
 
 Without the UI:
 
@@ -76,7 +76,7 @@ python -m app.cli run s2-negotiated-repair --strategy local --events
 
 1. **Plan**: prioritized Space-Time A\* reserves every robot's full path (cells and swaps).
 2. **Detect**: a disruption invalidates the remaining plans of some robots, the *directly affected set*.
-3. **Repair in order of cost**: wait, temporal shift, local detour, single-agent replan.
+3. **Repair in order of cost**: temporal delay (wait or shift), local detour, single-agent replan.
 4. **Negotiate**: if that fails, the robots blocking the ideal route bid (Contract-Net style). The cheapest option wins.
 5. **Expand** the affected set only if negotiation cannot resolve it, then replan that small group.
 6. **Commit** only after all plans are validated against each other and all obstacles. Executed steps never change.
@@ -90,7 +90,6 @@ best robot's queue with a raised priority. Details and complexity: [docs/algorit
 |---|---|---|
 | A | Single-agent | Repair only the directly affected robots; no negotiation |
 | B | **Local negotiated** (proposed) | Steps 1-6 above |
-| C | Global replanning | Replan every active robot (baseline) |
 
 ## Experiments
 
@@ -98,24 +97,24 @@ Dashboard: <http://localhost:3000/experiments>. Or from the command line (parall
 
 ```bash
 cd backend
-python -m app.experiments.batch_runner --type mixed --reps 20 --seed 0 --out experiment_outputs --name my_run
+python -m app.experiments.batch_runner --type mixed --out experiment_outputs --name my_run
+# options: --agents 5 20 40 --density 0 0.1 0.2 --reps 5 --tasks 1
 ```
 
 This writes `my_run.json`, `my_run_runs.csv` (one row per run) and `my_run_summary.csv` (mean, std, success rate).
 
-The reported campaign has 6000 runs (4 disruption types × 5 team sizes × 5 obstacle densities × 20 seeds × 3 strategies).
-Main findings (details in [docs/experiments.md](docs/experiments.md)):
+The reported campaign is small on purpose: 4 disruption types x 3 team sizes (5, 20, 40) x 3 obstacle densities
+(0, 0.1, 0.2) x 5 seeds x 2 strategies = 360 runs. Main findings (details in [docs/experiments.md](docs/experiments.md)):
 
-* B succeeds as often as C (about 95 %) and far more often than A (about 86 %).
-* B changes fewer robots than C (12.3 vs 14.6 per run on average) and is about 4× faster.
-* B needs roughly 12 messages per run, C about 450.
-* C finds somewhat shorter overall paths (B's flowtime is about 13 % higher).
+* B completes 96.7 % of runs, A only 87.8 %. The gap grows with congestion: at 40 robots B succeeds in 92 % of runs, A in 65 %.
+* B needs about 12 messages per run; no robot is moved unless negotiation requires it (largest affected set 2.8 robots on average).
 * No collisions occurred in any run.
+* With 3 tasks per robot (smaller sweep) success is 75.6 % for B and 71.1 % for A.
 
 ## Tests
 
 ```bash
-cd backend && python -m pytest        # 75 tests
+cd backend && python -m pytest        # 74 tests
 cd frontend && npx tsc --noEmit       # type check
 ```
 

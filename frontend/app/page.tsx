@@ -4,7 +4,7 @@ const steps = [
   ["1", "Plan", "Prioritized Space-Time A* gives every robot a collision-free plan (vertex + edge reservations)."],
   ["2", "Disrupt", "Block a cell, break a robot, or inject an emergency task while the robots are moving."],
   ["3", "Repair locally", "Only invalidated plans are released. Wait → shift → detour → negotiate → expand the affected set."],
-  ["4", "Compare", "See old vs. repaired paths, the conflict graph, bids, and metrics, or run batch experiments."],
+  ["4", "Compare", "See old vs. repaired paths, bids, and metrics, or run batch experiments."],
 ];
 
 export default function Home() {

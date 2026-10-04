@@ -66,7 +66,6 @@ export default function ControlPanel({ state, running, connected, speed, send, o
             <select className={inputCls} value={strategy} onChange={(e) => setStrategy(e.target.value as Strategy)}>
               <option value="local">B · local negotiated repair (proposed)</option>
               <option value="single_agent">A · single-agent repair</option>
-              <option value="global">C · global replanning (baseline)</option>
             </select>
           </Field>
           <div className="grid grid-cols-2 gap-2">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import ConflictGraph from "@/components/ConflictGraph";
 import ControlPanel from "@/components/ControlPanel";
 import DisruptionPanel from "@/components/DisruptionPanel";
 import EventLog from "@/components/EventLog";
@@ -26,7 +25,7 @@ export default function SimulationPage() {
   const [activation, setActivation] = useState("");
   const [duration, setDuration] = useState("");
   const [message, setMessage] = useState("");
-  const [tab, setTab] = useState<"repair" | "graph" | "events">("repair");
+  const [tab, setTab] = useState<"repair" | "events">("repair");
 
   const live = stream.state;
   const view: SimState | null = useMemo(
@@ -168,14 +167,13 @@ export default function SimulationPage() {
           title="Repair visualisation"
           right={
             <div className="flex gap-1">
-              {(["repair", "graph", "events"] as const).map((t) => (
+              {(["repair", "events"] as const).map((t) => (
                 <Btn key={t} active={tab === t} onClick={() => setTab(t)}>{t}</Btn>
               ))}
             </div>
           }
         >
           {view && tab === "repair" && <RepairInspector state={view} />}
-          {view && tab === "graph" && <ConflictGraph graphs={view.last_repair?.conflict_graphs ?? []} />}
           {tab === "events" && <EventLog events={stream.events} />}
           {!view && <p className="text-xs text-slate-400">Nothing loaded.</p>}
         </Panel>

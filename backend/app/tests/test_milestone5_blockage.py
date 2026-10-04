@@ -37,7 +37,7 @@ def test_wait_strategy_in_one_wide_corridor():
     res = eng.run()
     assert res.success
     assert res.completion_times["A"] == 8
-    assert eng.repairs[0]["methods"]["A"] == "wait"
+    assert eng.repairs[0]["methods"]["A"] == "delay"
     assert res.total_waits == 2
 
 

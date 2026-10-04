@@ -10,13 +10,13 @@ const parseList = (s: string): number[] =>
   s.split(/[ ,;]+/).map((x) => x.trim()).filter(Boolean).map(Number).filter((x) => Number.isFinite(x));
 
 export default function ExperimentsPage() {
-  const [agents, setAgents] = useState("5, 10, 20, 30, 40");
-  const [densities, setDensities] = useState("0, 0.05, 0.10, 0.15, 0.20");
+  const [agents, setAgents] = useState("5, 20, 40");
+  const [densities, setDensities] = useState("0, 0.10, 0.20");
   const [type, setType] = useState<ExperimentRequest["disruption_type"]>("cell_blockage");
-  const [reps, setReps] = useState(20);
+  const [reps, setReps] = useState(5);
   const [seed, setSeed] = useState(0);
   const [seedList, setSeedList] = useState("");
-  const [strategies, setStrategies] = useState<Strategy[]>(["single_agent", "local", "global"]);
+  const [strategies, setStrategies] = useState<Strategy[]>(["single_agent", "local"]);
   const [job, setJob] = useState<ExperimentJob | null>(null);
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -130,11 +130,11 @@ export default function ExperimentsPage() {
           </Panel>
         )}
 
-        {res && Object.keys(res.paired_local_vs_global).length > 1 && (
-          <Panel title="Paired comparison: B (local) vs C (global)">
+        {res && Object.keys(res.paired_local_vs_single_agent).length > 1 && (
+          <Panel title="Paired comparison: B (local) vs A (single-agent)">
             <table className="w-full text-[11px]">
               <tbody className="font-mono">
-                {Object.entries(res.paired_local_vs_global).map(([k, v]) => (
+                {Object.entries(res.paired_local_vs_single_agent).map(([k, v]) => (
                   <tr key={k} className="border-t border-ink-700"><td className="py-1 text-slate-400">{k}</td><td className="text-right">{typeof v === "number" ? v.toFixed(2) : String(v)}</td></tr>
                 ))}
               </tbody>

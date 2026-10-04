@@ -8,7 +8,7 @@ take every number from the files in `backend/experiment_outputs/` (see `docs/exp
 Problem (dynamic warehouse, disruptions), approach (Space-Time A* + reservation table + incremental, negotiated repair that touches as few robots as possible), evaluation (5 agent counts x 5 obstacle densities x 20 seeds x 3 strategies), and 2-3 headline findings. Write it last, quoting numbers from `default_*_summary.csv`.
 
 ## 2. Introduction
-Motivation (automated warehouses, changing environments), why global replanning is disruptive, the research question: *can plans be repaired locally while keeping the number of modified robots minimal?* Contributions (bullets). Roadmap of the report.
+Motivation (automated warehouses, changing environments), why replanning everything is disruptive, the research question: *can plans be repaired locally while keeping the number of modified robots minimal?* Contributions (bullets). Roadmap of the report.
 
 ## 3. Problem formulation
 Grid `G=(V,E)`, robots, tasks, timesteps, actions. Plans `pi_i = pi_i^executed (+) pi_i^remaining`. Disruptions (blockage, breakdown, emergency). Collision constraints (vertex, edge swap). Objective: flowtime, makespan, and the lexicographic repair objective `min |A_d|`, then `min sum dC`, then messages and runtime. Source: `docs/algorithm.md` sections 0 and 6.
@@ -26,7 +26,7 @@ State `(x, y, t, q)`, `f = g + h`, Manhattan-chain heuristic and its admissibili
 Definitions and handling of the three disruption types, direct affected set `A_d^0`, task reassignment cost `Cost(a_j, tau)`, emergency insertion. Source: `algorithm.md` section 5.
 
 ## 8. Proposed incremental repair algorithm
-`LOCAL_PLAN_REPAIR` pseudocode, the six strategies in order, atomic commit, validation, affected-set expansion, group replan, conflict graph. Include a worked example: scenario 1 (Impact = 1) and scenario 2 (Impact = 2) with the event log excerpt (`python -m app.cli run s2-negotiated-repair --events`).
+`LOCAL_PLAN_REPAIR` pseudocode, the repair strategies in order (delay, detour, negotiation, expansion, group replan), atomic commit, validation. Include a worked example: scenario 1 (Impact = 1) and scenario 2 (Impact = 2) with the event log excerpt (`python -m app.cli run s2-negotiated-repair --events`).
 
 ## 9. Neighbour negotiation protocol
 Message types, bid function `Bid_i = w1 dC + w2 dL + w3 P + w4 M`, chosen weights, emergency priority penalty, priority exchange. Include a message sequence diagram taken from the UI (Repair tab) or the event log.
@@ -41,7 +41,7 @@ Flowtime, makespan, Impact and ImpactRatio, Delta flowtime, repair runtime, mess
 Tables and the 8 charts produced by the dashboard (export CSV/JSON). One subsection per hypothesis in `docs/experiments.md` section "Hypotheses": state the observation with numbers and whether it is supported, not supported, or only partly supported. Do not assume the expected direction.
 
 ## 13. Discussion
-Interpretation, trade-off local vs global (modified robots and runtime vs flowtime), when the affected set grows, sensitivity to `w4`, failure analysis (failure reasons in `*_runs.csv`).
+Interpretation, local negotiated repair vs single-agent repair (success rate, modified robots, runtime), when the affected set grows, sensitivity to `w4`, failure analysis (failure reasons in `*_runs.csv`).
 
 ## 14. Limitations
 Copy and adapt `algorithm.md` section 10; add threats to validity (synthetic layout, single grid size, generated disruptions, short task lists, parameter choices).

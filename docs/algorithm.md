@@ -58,33 +58,33 @@ LOCAL_PLAN_REPAIR(d, t_d):
     update dynamic map; A <- directly affected agents; keep executed prefixes
     release future reservations of A only            (everything else stays reserved)
     for each pending agent a in A (emergency first, then by priority):
-        candidate <- first valid of:  1 wait   2 temporal shift   3 local detour / single-agent replan
+        candidate <- first valid of:  1 temporal delay   2 local detour / single-agent replan
         if candidate exists and a is not an emergency robot and its delay <= 12:  commit candidate
         else: NEGOTIATE(a)
     validate all plans against each other and against every obstacle; commit atomically or fail
 ```
 
+Priority exchange (the cheaper-to-move robot yields even if its planning priority is higher, logged as `PRIORITY_UPDATE`) is part of negotiation and group replanning, not a separate step.
+
 Strategies (each candidate is validated against obstacles and all fixed reservations before use):
 
-1. **Wait** - insert `1..max_wait (12)` waits just before the first illegal step.
-2. **Temporal shift** - delay the whole remaining plan by `1..max_shift (12)` steps.
-3. **Local detour** - replace a window of the plan by a Space-Time A* leg that rejoins the old plan up to `detour_window (14)` steps later (waypoints inside the window are still visited). If no window works, a single-agent replan over all remaining waypoints is tried. All other plans stay fixed.
-4. **Priority exchange** - during negotiation/group repair the cheaper-to-move robot yields even if its planning priority is higher (logged as `PRIORITY_UPDATE`); in group replanning a robot that cannot be planned is bumped to the front of the order.
-5. **Expansion** - `A <- A U {a_j}`; only `a_j`'s future reservations are released.
-6. **Group replan** - prioritized Space-Time A* over the affected group only, everything else fixed.
+1. **Temporal delay** - insert `1..max_delay (12)` waits just before the first illegal step; if that is not enough, delay the whole remaining plan by `1..max_delay` steps.
+2. **Local detour** - replace a window of the plan by a Space-Time A* leg that rejoins the old plan up to `detour_window (14)` steps later (waypoints inside the window are still visited). If no window works, a single-agent replan over all remaining waypoints is tried. All other plans stay fixed.
+3. **Expansion** - `A <- A U {a_j}`; only `a_j`'s future reservations are released.
+4. **Group replan** - prioritized Space-Time A* over the affected group only, everything else fixed.
 
 ### Negotiation (`repair/negotiation.py`, `_negotiate`)
 
 When agent `a` cannot be repaired locally (or `a` is an emergency robot, or its own yield is expensive):
 
 1. `a` computes its *ideal* route with soft constraints. The robots whose reservations it crosses are the **blockers** (ordered by first conflict time).
-2. For each blocker `j`: `REPAIR_REQUEST a -> j`. Each blocker tries to yield to the ideal route with strategies 1-3 against the table that already contains `a`'s ideal route.
+2. For each blocker `j`: `REPAIR_REQUEST a -> j`. Each blocker tries to yield to the ideal route with strategies 1-2 against the table that already contains `a`'s ideal route.
 3. Bids: `Bid_i = w1*dC_i + w2*dL_i + w3*P_i + w4*M_i` with `w1=1, w2=0.5, w3=1, w4=30`. `P_i = planning_priority + 1000` for emergency robots (a huge penalty for delaying them). `M_i = 1` if the robot's plan has not been modified yet, so touching a new agent costs `w4`. A robot that cannot yield locally bids infinity. `BID` messages go both ways.
 4. If `a` has a fallback (its own yield) and `Bid_a <= sum_j Bid_j`, `a` yields and blockers receive `REJECT`. Otherwise blockers receive `ACCEPT`, their new plans are adopted, they join `A` (`AFFECTED_SET_EXPANDED`, via `negotiation`), and a `PRIORITY_UPDATE` records priority inversions and emergency yielding.
-5. If a blocker cannot yield locally, `a` and the blockers form a group (strategy 6). If the group replan fails, the group expands by the neighbour with the cheapest expansion cost `w4 + P_j - 5*(#conflicts with the group's ideal routes)` (or the nearest robot if no conflicts are visible), until the group covers every active robot; then the repair fails and is flagged as a deadlock.
+5. If a blocker cannot yield locally, `a` and the blockers form a group (group replan). If the group replan fails, the group expands by the neighbour with the cheapest expansion cost `w4 + P_j - 5*(#conflicts with the group's ideal routes)` (or the nearest robot if no conflicts are visible), until the group covers every active robot; then the repair fails and is flagged as a deadlock.
 6. `REPAIR_COMMITTED` is sent to every modified robot other than the initiator. Message-only participants are **not** counted as modified: the impact set is computed from plan differences.
 
-If `a` is *already committed* and a later agent finds no route, already repaired agents are re-opened into the group (this was needed for completeness: without it, local repair failed on cases global replanning solved).
+If `a` is *already committed* and a later agent finds no route, already repaired agents are re-opened into the group (needed for completeness).
 
 ### Optimisation objective
 
@@ -93,22 +93,16 @@ Lexicographic, implemented as a weighted sum with `W1 >> W2 >> W3, W4`:
 
 ## 7. Baselines
 
-* **A - single-agent repair** (`strategy = "single_agent"`): same strategies 1-3 for the directly affected robots only; negotiation and expansion are disabled, so any conflict with an unchanged plan is a failure.
+* **A - single-agent repair** (`strategy = "single_agent"`): same strategies 1-2 for the directly affected robots only; negotiation and expansion are disabled, so any conflict with an unchanged plan is a failure.
 * **B - local negotiated repair** (`"local"`): the proposed method above.
-* **C - global replanning** (`"global"`, experimental only): every active robot's remaining path is recomputed with prioritized Space-Time A* from the current positions at `t_d` (with order retries). It uses the same task reassignment/insertion as A and B. Its message count is 1 request per active robot plus 1 commit per modified robot (central coordinator).
 
-## 8. Conflict graph (`repair/conflict_graph.py`)
-
-Nodes are robots. Edges: `vertex`, `edge_swap`, `shared_resource` (same cell used within 2 timesteps), `dependency` (breakdown -> task recipient). Strong edges (all but shared-resource) define the local connected component of the disrupted agent. Snapshots are recorded before the repair, after each ideal route, at each group step and after the repair; the UI shows them.
-
-## 9. Complexity
+## 8. Complexity
 
 * One Space-Time A* call explores at most `|V| * T * |Q|` states (`T` = horizon, `|Q|` = number of waypoints + 1) with a heap: `O(|V| T |Q| log(|V| T |Q|))` worst case. In practice the admissible heuristic keeps it far smaller. Calls are bounded by `max_expansions = 250000`.
-* Strategies 1-2 cost `O(max_wait + max_shift)` validations of `O(L)` each (`L` = plan length). Strategy 3 performs at most `4 * detour_window` bounded A* calls.
-* Negotiation: one soft A* + one local repair per blocker. Group replan: `|G|` A* calls per order, `<= max_order_retries + 1` orders. Expansion grows `|G|` at most `N` times, so the worst case degrades to global prioritized replanning, `O(N)` A* calls per attempt.
-* Conflict graph: `O(sum L)` with a cell-time index.
+* Strategy 1 costs `O(2 * max_delay)` validations of `O(L)` each (`L` = plan length). Strategy 2 performs at most `4 * detour_window` bounded A* calls.
+* Negotiation: one soft A* + one local repair per blocker. Group replan: `|G|` A* calls per order, `<= max_order_retries + 1` orders. Expansion grows `|G|` at most `N` times, so the worst case is `O(N)` A* calls per attempt.
 
-## 10. Limitations
+## 9. Limitations
 
 * Prioritized planning (initial and group) is incomplete: solvable instances can be reported as failures. Repair failure ends the run (no partial recovery).
 * Exit-at-goal is an assumption; parked robots (that could later be blocked in place) are not modelled.

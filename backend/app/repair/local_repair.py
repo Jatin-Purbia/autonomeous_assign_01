@@ -5,11 +5,11 @@ Behaviour (see docs/algorithm.md):
     LOCAL_PLAN_REPAIR(d, t_d):
         A <- directly invalidated agents;  release only their future reservations
         for each pending agent a (by priority):
-            1 wait  2 temporal shift  3 local detour / single-agent replan   (unchanged agents stay fixed)
+            1 temporal delay  2 local detour / single-agent replan   (unchanged agents stay fixed)
             if none valid (or a is an emergency robot / its own delay is large):
                 negotiate with the neighbours whose routes block a's *ideal* route  (Contract-Net bids)
-                    - cheaper side yields (wait / shift / detour) -> neighbour joins A
-                    - neighbours that cannot yield locally -> 4 priority exchange, 5 expand A, 6 group replan
+                    - cheaper side yields (delay / detour) -> neighbour joins A
+                    - neighbours that cannot yield locally -> priority exchange, expand A, group replan
         validate everything, commit atomically (done by the engine) or fail.
 
 Robots never restart planning from t=0 and no unaffected plan is touched.
@@ -29,7 +29,6 @@ from ..planning.reservation_table import ReservationTable
 from ..planning.space_time_astar import PlanningContext, SoftConstraints, space_time_astar
 from ..simulation.event_log import EventType
 from .affected_set import AffectedSet
-from .conflict_graph import build_conflict_graph
 from .models import Plan, RepairConfig, RepairContext, RepairResult
 from .negotiation import Bid, MessageBus, compute_bid, is_emergency, priority_penalty
 from .repair_validation import first_invalid_index, prefixes_preserved, suffix_valid, validate_all
@@ -61,10 +60,8 @@ class RepairSession:
         self.base_wps: dict[str, list[Position]] = {}   # append-mode robots (breakdown recipients)
         self.full_replan: set[str] = set()              # insert-mode robots (emergency)
         self.forced_plans: dict[str, Plan] = {}         # e.g. truncated plan of a broken robot
-        self.dependencies: list[tuple[str, str, str]] = []
         self.reassignments: list[dict[str, Any]] = []
         self.conflicts_avoided = 0
-        self.graphs: list[dict[str, Any]] = []
         self.failure: Optional[str] = None
         self.deadlock = False
         self.initiator: Optional[str] = None
@@ -111,22 +108,18 @@ class RepairSession:
         return [rid for rid, r in self.robots.items()
                 if r.on_grid and r.status not in (RobotStatus.BROKEN, RobotStatus.DONE)]
 
-    # ------------------------------------------------------------------ strategies 1-3 (+ replan)
-    def _try_wait(self, rid: str, pctx: PlanningContext, suffix: Positions, req: Positions) -> Optional[Positions]:
-        """Strategy 1: insert a short wait just before the first illegal step."""
+    # ------------------------------------------------------------------ strategies 1-2 (+ replan)
+    def _try_delay(self, rid: str, pctx: PlanningContext, suffix: Positions, req: Positions) -> Optional[Positions]:
+        """Strategy 1: temporal delay. Insert a short wait just before the first illegal step; if that does not
+        help, delay the whole remaining plan by k timesteps."""
         i = first_invalid_index(pctx, rid, suffix, self.td)
         if i is None:
             return list(suffix) if completes_waypoints(suffix, req) else None
-        for w in range(1, self.cfg.max_wait + 1):
+        for w in range(1, self.cfg.max_delay + 1):
             cand = suffix[:i] + [suffix[i - 1]] * w + suffix[i:]
             if suffix_valid(pctx, rid, cand, self.td, req):
                 return cand
-        self.conflicts_avoided += 1
-        return None
-
-    def _try_shift(self, rid: str, pctx: PlanningContext, suffix: Positions, req: Positions) -> Optional[Positions]:
-        """Strategy 2: delay the whole remaining plan by k timesteps."""
-        for k in range(1, self.cfg.max_shift + 1):
+        for k in range(1, self.cfg.max_delay + 1):
             cand = [suffix[0]] * k + suffix
             if suffix_valid(pctx, rid, cand, self.td, req):
                 return cand
@@ -181,7 +174,7 @@ class RepairSession:
             return self._replan(rid, pctx)
         suffix = self._suffix(rid)
         req, ext = self._req_wps(rid), self._ext_wps(rid)
-        for name, fn in (("wait", self._try_wait), ("shift", self._try_shift), ("detour", self._try_detour)):
+        for name, fn in (("delay", self._try_delay), ("detour", self._try_detour)):
             cand = fn(rid, pctx, suffix, req)
             if cand is None:
                 continue
@@ -189,7 +182,7 @@ class RepairSession:
                 cand = self._extend(rid, pctx, cand, ext)
                 if cand is None:
                     continue
-                if name == "wait" and len(cand) > 0 and cand[: len(suffix)] == suffix:
+                if name == "delay" and len(cand) > 0 and cand[: len(suffix)] == suffix:
                     name = "extension"
             return name, cand
         return self._replan(rid, pctx)
@@ -209,19 +202,6 @@ class RepairSession:
             self.ctx.emit(EventType.AFFECTED_SET_EXPANDED, [rid] + ([added_by] if added_by else []), via.upper(),
                           {"added": rid, "added_by": added_by, "via": via, "size": len(self.affected),
                            "reason": reason})
-
-    def _graph(self, label: str, extra: Optional[dict[str, Plan]] = None) -> None:
-        plans: dict[str, Plan] = {}
-        for rid in self._active_ids():
-            plans[rid] = self.new_plans.get(rid) or self._old(rid)
-        if extra:
-            plans.update(extra)
-        g = build_conflict_graph(plans, self.td, self.dependencies, label=label)
-        d = g.to_dict(self.affected.ids(), self.direct_ids)
-        strong = [e for e in d["edges"] if e["kind"] != "shared_resource"]
-        shared = [e for e in d["edges"] if e["kind"] == "shared_resource"][:80]
-        d["edges"] = strong + shared
-        self.graphs.append(d)
 
     # ------------------------------------------------------------------ ideal route / blockers
     def _yieldable(self, a: str, excluded: set[str], include_affected: bool = False) -> list[str]:
@@ -281,7 +261,6 @@ class RepairSession:
             self.work.release_robot(rid, self.td)
         for rid in self.direct_ids:
             self._release(rid)
-        self._graph("initial (before repair)")
         pending = list(self.direct_ids)
         ok = True
         while pending and ok:
@@ -327,7 +306,6 @@ class RepairSession:
             return False
         route, blockers = ideal
         ideal_plan = self._compose(a, route)
-        self._graph(f"ideal route of {a} vs neighbours", {a: ideal_plan})
         if not blockers:
             self._register(a, "replan", route)
             return True
@@ -372,7 +350,7 @@ class RepairSession:
                 self.bus.send("REJECT", a, j, bid_a=bid_a.to_dict()["cost"], bid_j=bids_j[j].to_dict()["cost"])
             self._register(a, fallback[0], fallback[1])
             return True
-        if not failed:  # neighbours yield locally (wait / shift / detour)
+        if not failed:  # neighbours yield locally (delay / detour)
             for j in blockers:
                 self.bus.send("ACCEPT", a, j, yield_method=yields[j][0], bid=bids_j[j].to_dict()["cost"])
                 if self.robots[j].planning_priority > robot.planning_priority or is_emergency(robot):
@@ -451,7 +429,6 @@ class RepairSession:
                 self._expand(m, "group", f"INDIRECT: conflicts with {initiator}'s repaired route; group replan",
                              initiator)
         while True:
-            self._graph(f"group repair of {group}")
             found = self._group_astar(group)
             if found is not None:
                 order, plans, tmp = found
@@ -500,7 +477,7 @@ class RepairSession:
         return RepairResult(
             success=False, strategy=self.strategy, failure_reason=self.failure or "unknown",
             direct=list(self.direct_ids), affected=self.affected.ids(), expansions=list(self.affected.history),
-            reasons=dict(self.reasons), messages=list(self.bus.messages), conflict_graphs=self.graphs,
+            reasons=dict(self.reasons), messages=list(self.bus.messages),
             conflicts_avoided=self.conflicts_avoided, runtime_ms=(_time.perf_counter() - t0) * 1000,
             reassignments=self.reassignments, deadlock=self.deadlock)
 
@@ -533,7 +510,6 @@ class RepairSession:
         for rid in changed:
             if rid != self.initiator and rid not in self.forced_plans:
                 self.bus.send("REPAIR_COMMITTED", self.initiator or "SYSTEM", rid, method=self.methods.get(rid))
-        self._graph("final (after repair)")
         cfg = self.cfg
         runtime = (_time.perf_counter() - t0) * 1000
         n_msgs = len(self.bus.messages)
@@ -543,76 +519,5 @@ class RepairSession:
             success=True, strategy=self.strategy, new_plans=changed, direct=list(self.direct_ids),
             affected=self.affected.ids(), modified=sorted(changed), expansions=list(self.affected.history),
             reasons=dict(self.reasons), methods=dict(self.methods), messages=list(self.bus.messages),
-            conflict_graphs=self.graphs, diffs=diffs, conflicts_avoided=self.conflicts_avoided,
+            diffs=diffs, conflicts_avoided=self.conflicts_avoided,
             runtime_ms=runtime, delta_completion=delta, reassignments=self.reassignments, objective=objective)
-
-
-# ---------------------------------------------------------------------- baseline C: global replanning
-def global_replan(ctx: RepairContext, direct: dict[str, str], forced: dict[str, Plan],
-                  reassignments: list[dict[str, Any]], reason_code: str) -> RepairResult:
-    """Experimental baseline: recompute *every* active robot's remaining path (not the normal mechanism)."""
-    t0 = _time.perf_counter()
-    td, cfg = ctx.time, ctx.config
-    bus = MessageBus(td, ctx.emit)
-    active = [rid for rid, r in ctx.robots.items()
-              if r.on_grid and r.status not in (RobotStatus.BROKEN, RobotStatus.DONE)]
-    ctx.emit(EventType.REPAIR_STARTED, sorted(direct), reason_code, {"strategy": "global", "direct": sorted(direct)})
-    for rid in active:
-        bus.send("REPAIR_REQUEST", "COORDINATOR", rid, reason="global replanning: report state")
-    order = sorted(active, key=lambda r: (not is_emergency(ctx.robots[r]), -ctx.robots[r].planning_priority, r))
-    rng_orders = [order]
-    new: dict[str, Plan] = {}
-    failure = "global replanning failed"
-    for attempt in range(cfg.max_order_retries + 1):
-        cur_order = rng_orders[-1]
-        table = ReservationTable()
-        pctx = PlanningContext(ctx.grid, ctx.obstacles, table)
-        plans: dict[str, Plan] = {}
-        failed_rid = None
-        for rid in cur_order:
-            r = ctx.robots[rid]
-            wps = [w.position for w in r.remaining_waypoints()]
-            res = space_time_astar(pctx, rid, r.current_position, td, wps, max_expansions=cfg.max_expansions)
-            if not res.found or not res.path:
-                failed_rid = rid
-                break
-            plan = list(r.active_plan[:td]) + make_plan(res.path, td)
-            table.reserve_path(rid, plan, from_time=td)
-            plans[rid] = plan
-        if failed_rid is None:
-            new = plans
-            break
-        failure = f"global replanning failed for {failed_rid}"
-        rng_orders.append([failed_rid] + [r for r in cur_order if r != failed_rid])
-    runtime_fail = (_time.perf_counter() - t0) * 1000
-    if not new:
-        return RepairResult(False, "global", failure, direct=sorted(direct), affected=list(active),
-                            messages=list(bus.messages), runtime_ms=runtime_fail, deadlock=True)
-    changed = {rid: p for rid, p in new.items() if plan_key(p) != plan_key(ctx.robots[rid].active_plan)}
-    changed.update(forced)
-    diffs = {}
-    delta = {}
-    for rid, plan in changed.items():
-        old = ctx.robots[rid].active_plan
-        diffs[rid] = {"from_time": td, "old_suffix": [[tp.position.x, tp.position.y] for tp in old[td:]],
-                      "new_suffix": [[tp.position.x, tp.position.y] for tp in plan[td:]], "method": "global",
-                      "reason": "GLOBAL REPLAN"}
-        delta[rid] = plan[-1].time - old[-1].time
-    for rid in changed:
-        if rid not in forced:
-            bus.send("REPAIR_COMMITTED", "COORDINATOR", rid)
-    live = {rid: changed.get(rid, new.get(rid)) for rid in active}
-    persistent = {rid: r.current_position for rid, r in ctx.robots.items() if r.status == RobotStatus.BROKEN}
-    conflicts = validate_all({k: v for k, v in live.items() if v}, ctx.obstacles, td, persistent)
-    runtime = (_time.perf_counter() - t0) * 1000
-    if conflicts:
-        return RepairResult(False, "global", f"validation rejected global replan: {conflicts[:2]}",
-                            messages=list(bus.messages), runtime_ms=runtime)
-    return RepairResult(
-        True, "global", None, new_plans=changed, direct=sorted(direct), affected=list(active),
-        modified=sorted(changed), messages=list(bus.messages), diffs=diffs, runtime_ms=runtime,
-        delta_completion=delta, reassignments=reassignments,
-        reasons={rid: "GLOBAL: all remaining paths recomputed" for rid in changed},
-        methods={rid: "global" for rid in changed},
-        objective=cfg.W1 * len(changed) + cfg.W2 * sum(max(0, d) for d in delta.values()) + cfg.W3 * len(bus.messages)
-        + cfg.W4 * runtime)

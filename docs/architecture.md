@@ -8,10 +8,9 @@ backend/app
                  disruption.py  metrics.py (flowtime, makespan, impact, mean, sample std, ...)
   planning/      space_time_astar.py  heuristics.py  reservation_table.py
                  collision_detection.py  prioritized_mapf.py           <- initial planning only
-  repair/        dispatcher.py        disruption -> repair problem, strategy selection (A / B / C)
-                 local_repair.py      RepairSession (strategies 1-6, negotiation, expansion) + global baseline
+  repair/        dispatcher.py        disruption -> repair problem, strategy selection (A / B)
+                 local_repair.py      RepairSession (delay, detour, negotiation, expansion, group replan)
                  affected_set.py      A_d^0 detection and A_d tracking
-                 conflict_graph.py    temporary conflict graph C = (A, E_C)
                  negotiation.py       bid function, message bus (message count metric)
                  task_reassignment.py breakdown task pool, emergency insertion, assignment cost
                  repair_validation.py validation of tentative repairs
@@ -27,7 +26,7 @@ backend/app
 frontend (Next.js / TypeScript / Tailwind / Framer Motion / Recharts)
   app/            page.tsx  simulation/page.tsx  experiments/page.tsx
   components/     GridView  RobotSprite  ControlPanel  DisruptionPanel  MetricsPanel  Timeline
-                  EventLog  ConflictGraph  RepairInspector  ExperimentCharts  ui
+                  EventLog  RepairInspector  ExperimentCharts  ui
   lib/            api.ts  websocket.ts  types.ts  viz.ts
 ```
 

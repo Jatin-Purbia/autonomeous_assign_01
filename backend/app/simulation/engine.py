@@ -40,7 +40,7 @@ class InvariantError(AssertionError):
 
 @dataclass
 class EngineConfig:
-    strategy: str = "local"         # "local" (proposed) | "single_agent" (baseline A) | "global" (baseline C)
+    strategy: str = "local"         # "local" (proposed) | "single_agent" (baseline A)
     max_time: int = 800
     dev_checks: bool = True         # run invariant checks after every timestep
     record_movement: bool = True    # ROBOT_MOVED / ROBOT_WAITED events

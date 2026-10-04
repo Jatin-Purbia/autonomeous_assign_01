@@ -1,107 +1,77 @@
-Config: {"agent_counts": [5, 10, 20, 30, 40], "densities": [0.0, 0.05, 0.1, 0.15, 0.2], "disruption_type": "robot_breakdown", "repetitions": 20, "seed": 0, "strategies": ["single_agent", "local", "global"], "width": 20, "height": 14, "tasks_per_robot": 1, "block_duration_min": 6, "block_duration_max": 14, "targeted_fraction": 0.5, "n_breakdowns": 1, "n_emergencies": 1, "max_time": 500}
+Config: {"agent_counts": [5, 20, 40], "densities": [0.0, 0.1, 0.2], "disruption_type": "robot_breakdown", "repetitions": 5, "seed": 0, "strategies": ["single_agent", "local"], "width": 20, "height": 14, "tasks_per_robot": 1, "block_duration_min": 6, "block_duration_max": 14, "targeted_fraction": 0.5, "n_breakdowns": 1, "n_emergencies": 1, "max_time": 500}
 
-Total runs: 1500, wall time 196 s
+Total runs: 90, wall time 5 s
 
 ### Success rate (share of runs completing all tasks)
-| N \ rho | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:95% B:95% C:95% | A:95% B:95% C:95% | A:100% B:100% C:90% | A:100% B:100% C:90% | A:90% B:95% C:100% |
-| 10 | A:95% B:95% C:95% | A:95% B:100% C:100% | A:95% B:95% C:95% | A:95% B:95% C:100% | A:95% B:95% C:100% |
-| 20 | A:90% B:90% C:90% | A:95% B:95% C:100% | A:100% B:100% C:100% | A:80% B:80% C:85% | A:80% B:100% C:95% |
-| 30 | A:95% B:95% C:95% | A:75% B:80% C:80% | A:70% B:85% C:90% | A:40% B:80% C:90% | A:60% B:80% C:90% |
-| 40 | A:85% B:90% C:90% | A:65% B:75% C:70% | A:55% B:90% C:85% | A:50% B:85% C:90% | A:35% B:80% C:65% |
+| N \ rho | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:100% B:100% | A:100% B:100% | A:100% B:100% |
+| 20 | A:100% B:100% | A:100% B:100% | A:100% B:100% |
+| 40 | A:100% B:100% | A:80% B:100% | A:60% B:80% |
 
-### Flowtime vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:119±22<br>B:119±22<br>C:118±22 | A:147±24<br>B:147±24<br>C:125±20 | A:163±25<br>B:163±25<br>C:137±22 | A:176±27<br>B:176±27<br>C:142±24 | A:185±30<br>B:185±29<br>C:148±23 |
-| 10 | A:241±24<br>B:241±24<br>C:240±24 | A:288±28<br>B:290±29<br>C:253±29 | A:318±33<br>B:318±33<br>C:263±25 | A:346±31<br>B:345±30<br>C:279±28 | A:366±34<br>B:365±34<br>C:287±21 |
-| 20 | A:485±40<br>B:485±40<br>C:483±41 | A:557±47<br>B:557±47<br>C:507±45 | A:599±56<br>B:599±57<br>C:528±44 | A:659±45<br>B:659±45<br>C:554±37 | A:698±50<br>B:694±47<br>C:570±41 |
-| 30 | A:737±48<br>B:737±48<br>C:735±47 | A:812±67<br>B:814±65<br>C:757±50 | A:882±46<br>B:888±48<br>C:798±50 | A:932±50<br>B:931±62<br>C:816±57 | A:978±55<br>B:976±55<br>C:839±48 |
-| 40 | A:970±54<br>B:972±54<br>C:967±56 | A:1087±65<br>B:1086±60<br>C:1019±55 | A:1152±43<br>B:1156±59<br>C:1063±53 | A:1250±76<br>B:1248±78<br>C:1105±64 | A:1305±53<br>B:1308±86<br>C:1141±94 |
+### Flowtime vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:116�27<br>B:116�27 | A:151�33<br>B:151�33 | A:181�22<br>B:181�22 |
+| 20 | A:482�23<br>B:482�23 | A:603�28<br>B:603�28 | A:680�46<br>B:681�46 |
+| 40 | A:952�56<br>B:952�56 | A:1140�27<br>B:1121�51 | A:1271�16<br>B:1258�31 |
 
-### Modified agents vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:2.2±0.4<br>B:2.2±0.4<br>C:2.2±0.4 | A:4.2±0.8<br>B:4.2±0.8<br>C:4.2±0.7 | A:4.8±0.6<br>B:4.8±0.6<br>C:4.8±0.5 | A:5.0±0.0<br>B:5.0±0.0<br>C:5.0±0.0 | A:5.0±0.0<br>B:5.0±0.0<br>C:5.0±0.0 |
-| 10 | A:2.4±0.8<br>B:2.4±0.8<br>C:2.7±1.2 | A:7.3±1.3<br>B:7.4±1.3<br>C:7.7±1.2 | A:8.6±1.1<br>B:8.6±1.1<br>C:8.9±1.1 | A:9.8±0.4<br>B:9.8±0.4<br>C:9.9±0.3 | A:9.7±0.5<br>B:9.7±0.5<br>C:9.8±0.4 |
-| 20 | A:3.3±1.5<br>B:3.3±1.5<br>C:4.3±2.7 | A:10.8±2.6<br>B:10.8±2.6<br>C:13.2±2.7 | A:14.7±2.2<br>B:14.7±2.2<br>C:16.4±2.1 | A:17.4±1.5<br>B:17.4±1.5<br>C:18.8±1.2 | A:18.1±1.2<br>B:18.2±1.3<br>C:18.9±0.8 |
-| 30 | A:3.7±1.6<br>B:3.7±1.6<br>C:5.4±4.1 | A:14.3±3.0<br>B:14.6±3.2<br>C:19.2±4.2 | A:20.9±2.6<br>B:21.1±2.4<br>C:24.8±3.3 | A:23.1±2.5<br>B:24.1±2.8<br>C:27.1±2.1 | A:25.6±1.4<br>B:26.1±1.5<br>C:28.1±1.4 |
-| 40 | A:3.9±2.0<br>B:3.9±1.9<br>C:8.0±5.7 | A:18.2±4.3<br>B:18.1±4.0<br>C:28.9±4.6 | A:24.1±4.1<br>B:26.2±4.4<br>C:33.6±3.7 | A:31.0±2.4<br>B:31.4±2.0<br>C:35.8±2.1 | A:32.4±2.8<br>B:33.4±3.0<br>C:37.1±2.0 |
+### Modified agents vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:2.2�0.4<br>B:2.2�0.4 | A:4.6�0.9<br>B:4.6�0.9 | A:5.0�0.0<br>B:5.0�0.0 |
+| 20 | A:2.4�0.5<br>B:2.4�0.5 | A:14.4�2.3<br>B:14.4�2.3 | A:18.6�0.5<br>B:18.6�0.5 |
+| 40 | A:4.8�2.8<br>B:4.8�2.8 | A:24.8�2.6<br>B:25.6�3.0 | A:31.7�3.8<br>B:31.8�3.1 |
 
-### Repair time (ms) vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:4±1<br>B:5±1<br>C:12±5 | A:15±5<br>B:16±6<br>C:136±24 | A:25±6<br>B:26±6<br>C:240±48 | A:42±9<br>B:44±8<br>C:414±87 | A:62±17<br>B:64±17<br>C:545±99 |
-| 10 | A:8±4<br>B:7±3<br>C:24±11 | A:41±17<br>B:48±33<br>C:349±53 | A:69±21<br>B:71±21<br>C:565±96 | A:109±44<br>B:109±46<br>C:848±135 | A:134±22<br>B:133±21<br>C:1049±125 |
-| 20 | A:17±24<br>B:18±26<br>C:56±21 | A:91±71<br>B:90±76<br>C:578±74 | A:166±77<br>B:170±72<br>C:996±124 | A:296±126<br>B:296±123<br>C:1527±168 | A:414±136<br>B:421±145<br>C:1991±314 |
-| 30 | A:13±7<br>B:14±9<br>C:79±32 | A:159±107<br>B:159±102<br>C:822±109 | A:366±169<br>B:372±165<br>C:1508±253 | A:454±184<br>B:478±172<br>C:2178±347 | A:574±155<br>B:674±266<br>C:2879±322 |
-| 40 | A:22±23<br>B:23±23<br>C:98±45 | A:308±207<br>B:301±190<br>C:1049±181 | A:589±307<br>B:713±370<br>C:2205±517 | A:876±228<br>B:989±430<br>C:3357±531 | A:2713±3583<br>B:3294±3867<br>C:6790±6135 |
+### Repair time (ms) vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:4�2<br>B:4�1 | A:11�3<br>B:11�3 | A:24�5<br>B:24�6 |
+| 20 | A:6�2<br>B:5�2 | A:118�59<br>B:119�55 | A:213�90<br>B:213�97 |
+| 40 | A:20�27<br>B:19�24 | A:225�93<br>B:226�88 | A:576�209<br>B:628�226 |
 
-### Messages vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:0.2±0.4<br>B:0.2±0.4<br>C:4.5±1.1 | A:0.6±0.9<br>B:0.6±0.9<br>C:60.0±9.5 | A:0.8±0.8<br>B:0.8±0.8<br>C:111.9±12.7 | A:1.4±1.8<br>B:1.4±1.8<br>C:172.5±15.4 | A:0.9±1.0<br>B:1.3±1.7<br>C:217.9±19.1 |
-| 10 | A:0.4±0.8<br>B:0.4±0.8<br>C:7.8±3.5 | A:2.9±1.8<br>B:3.6±3.6<br>C:117.0±13.2 | A:3.6±2.6<br>B:3.6±2.6<br>C:219.9±22.7 | A:4.5±2.6<br>B:4.5±2.6<br>C:336.6±21.5 | A:5.1±2.1<br>B:5.1±2.1<br>C:435.9±27.1 |
-| 20 | A:1.3±1.5<br>B:1.3±1.5<br>C:19.7±6.2 | A:5.9±3.4<br>B:5.9±3.4<br>C:224.8±29.6 | A:9.1±4.2<br>B:9.1±4.2<br>C:415.5±37.2 | A:14.9±4.1<br>B:14.9±4.1<br>C:663.3±43.4 | A:14.6±4.6<br>B:17.0±8.0<br>C:857.3±59.9 |
-| 30 | A:1.7±1.6<br>B:1.7±1.6<br>C:28.1±9.1 | A:9.5±5.2<br>B:9.8±5.1<br>C:336.1±35.9 | A:17.3±5.0<br>B:19.0±7.4<br>C:638.6±60.5 | A:18.9±4.9<br>B:22.4±6.5<br>C:958.1±69.9 | A:26.7±5.4<br>B:29.7±8.0<br>C:1286.3±78.8 |
-| 40 | A:1.9±2.0<br>B:2.2±2.1<br>C:37.3±14.5 | A:13.7±5.2<br>B:13.7±5.0<br>C:452.8±61.6 | A:19.7±6.4<br>B:28.4±15.5<br>C:854.1±91.1 | A:33.7±5.7<br>B:37.6±8.7<br>C:1306.7±77.1 | A:43.4±6.3<br>B:54.8±19.7<br>C:1690.7±116.8 |
+### Messages vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:0.2�0.4<br>B:0.2�0.4 | A:0.2�0.4<br>B:0.2�0.4 | A:0.6�0.9<br>B:0.6�0.9 |
+| 20 | A:0.4�0.5<br>B:0.4�0.5 | A:9.2�3.8<br>B:9.2�3.8 | A:13.0�3.8<br>B:13.6�3.8 |
+| 40 | A:2.8�2.8<br>B:2.8�2.8 | A:21.5�1.7<br>B:22.6�3.8 | A:44.3�8.1<br>B:46.8�7.9 |
 
-### Affected-set expansions per run vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.05±0.23<br>C:0.00±0.00 |
-| 10 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.10±0.45<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 |
-| 20 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.35±0.93<br>C:0.00±0.00 |
-| 30 | A:0.00±0.00<br>B:0.00±0.00<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.06±0.25<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.24±0.56<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.31±0.48<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.25±0.58<br>C:0.00±0.00 |
-| 40 | A:0.00±0.00<br>B:0.06±0.24<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.07±0.26<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.78±1.56<br>C:0.00±0.00 | A:0.00±0.00<br>B:0.41±0.71<br>C:0.00±0.00 | A:0.00±0.00<br>B:1.56±2.34<br>C:0.00±0.00 |
+### Affected-set expansions per run vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:0.00�0.00<br>B:0.00�0.00 | A:0.00�0.00<br>B:0.00�0.00 | A:0.00�0.00<br>B:0.00�0.00 |
+| 20 | A:0.00�0.00<br>B:0.00�0.00 | A:0.00�0.00<br>B:0.00�0.00 | A:0.00�0.00<br>B:0.00�0.00 |
+| 40 | A:0.00�0.00<br>B:0.00�0.00 | A:0.00�0.00<br>B:0.20�0.45 | A:0.00�0.00<br>B:0.25�0.50 |
 
-### Largest |A_d| of any repair vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:1.2±0.4<br>B:1.2±0.4<br>C:3.3±0.9 | A:1.5±0.6<br>B:1.5±0.6<br>C:4.9±0.2 | A:1.6±0.6<br>B:1.6±0.6<br>C:5.0±0.0 | A:1.6±0.5<br>B:1.6±0.5<br>C:5.0±0.0 | A:1.6±0.5<br>B:1.6±0.5<br>C:5.0±0.0 |
-| 10 | A:1.4±0.8<br>B:1.4±0.8<br>C:6.2±2.7 | A:2.6±1.0<br>B:2.6±1.0<br>C:10.0±0.0 | A:2.5±0.9<br>B:2.5±0.9<br>C:10.0±0.0 | A:2.5±0.6<br>B:2.5±0.6<br>C:10.0±0.0 | A:2.7±0.7<br>B:2.7±0.7<br>C:10.0±0.0 |
-| 20 | A:2.3±1.5<br>B:2.3±1.5<br>C:16.3±4.5 | A:2.9±0.8<br>B:2.9±0.8<br>C:20.0±0.0 | A:3.7±1.2<br>B:3.7±1.2<br>C:20.0±0.0 | A:3.9±0.9<br>B:3.9±0.9<br>C:20.0±0.0 | A:3.6±0.8<br>B:3.8±1.0<br>C:20.0±0.0 |
-| 30 | A:2.7±1.6<br>B:2.7±1.6<br>C:23.7±6.6 | A:3.5±1.1<br>B:3.6±1.0<br>C:29.9±0.2 | A:4.5±1.3<br>B:4.5±1.4<br>C:30.0±0.0 | A:4.4±0.7<br>B:4.5±0.7<br>C:30.0±0.0 | A:4.9±0.9<br>B:5.1±0.9<br>C:30.0±0.0 |
-| 40 | A:2.9±2.0<br>B:2.9±1.9<br>C:30.3±9.8 | A:5.7±1.1<br>B:5.6±1.1<br>C:39.9±0.3 | A:5.4±1.1<br>B:6.1±1.6<br>C:40.0±0.0 | A:5.9±1.2<br>B:6.7±2.2<br>C:40.0±0.0 | A:5.7±1.1<br>B:6.5±2.0<br>C:40.0±0.0 |
+### Largest |A_d| of any repair vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:1.2�0.4<br>B:1.2�0.4 | A:1.2�0.4<br>B:1.2�0.4 | A:1.4�0.5<br>B:1.4�0.5 |
+| 20 | A:1.4�0.5<br>B:1.4�0.5 | A:3.8�0.4<br>B:3.8�0.4 | A:3.6�0.5<br>B:3.6�0.5 |
+| 40 | A:3.8�2.8<br>B:3.8�2.8 | A:5.2�0.5<br>B:5.4�0.5 | A:5.0�1.0<br>B:5.5�1.3 |
 
-### Modified ratio vs agent count (rows) and density (columns); mean±std over successful runs
-| n_agents \ density | 0.0 | 0.05 | 0.1 | 0.15 | 0.2 |
-|---|---|---|---|---|---|
-| 5 | A:0.43±0.07<br>B:0.43±0.07<br>C:0.43±0.07 | A:0.83±0.15<br>B:0.83±0.15<br>C:0.84±0.14 | A:0.95±0.11<br>B:0.95±0.11<br>C:0.96±0.11 | A:1.00±0.00<br>B:1.00±0.00<br>C:1.00±0.00 | A:1.00±0.00<br>B:1.00±0.00<br>C:1.00±0.00 |
-| 10 | A:0.24±0.08<br>B:0.24±0.08<br>C:0.27±0.12 | A:0.73±0.13<br>B:0.74±0.13<br>C:0.77±0.12 | A:0.86±0.11<br>B:0.86±0.11<br>C:0.89±0.11 | A:0.98±0.04<br>B:0.98±0.04<br>C:0.99±0.03 | A:0.97±0.05<br>B:0.97±0.05<br>C:0.98±0.04 |
-| 20 | A:0.16±0.07<br>B:0.16±0.07<br>C:0.22±0.13 | A:0.54±0.13<br>B:0.54±0.13<br>C:0.66±0.14 | A:0.73±0.11<br>B:0.73±0.11<br>C:0.82±0.10 | A:0.87±0.08<br>B:0.87±0.08<br>C:0.94±0.06 | A:0.91±0.06<br>B:0.91±0.06<br>C:0.95±0.04 |
-| 30 | A:0.12±0.05<br>B:0.12±0.05<br>C:0.18±0.14 | A:0.48±0.10<br>B:0.49±0.11<br>C:0.64±0.14 | A:0.70±0.09<br>B:0.70±0.08<br>C:0.83±0.11 | A:0.77±0.08<br>B:0.80±0.09<br>C:0.90±0.07 | A:0.85±0.05<br>B:0.87±0.05<br>C:0.94±0.05 |
-| 40 | A:0.10±0.05<br>B:0.10±0.05<br>C:0.20±0.14 | A:0.46±0.11<br>B:0.45±0.10<br>C:0.72±0.11 | A:0.60±0.10<br>B:0.65±0.11<br>C:0.84±0.09 | A:0.78±0.06<br>B:0.78±0.05<br>C:0.90±0.05 | A:0.81±0.07<br>B:0.84±0.07<br>C:0.93±0.05 |
+### Modified ratio vs agent count (rows) and density (columns); mean�std over successful runs
+| n_agents \ density | 0.0 | 0.1 | 0.2 |
+|---|---|---|---|
+| 5 | A:0.44�0.09<br>B:0.44�0.09 | A:0.92�0.18<br>B:0.92�0.18 | A:1.00�0.00<br>B:1.00�0.00 |
+| 20 | A:0.12�0.03<br>B:0.12�0.03 | A:0.72�0.12<br>B:0.72�0.12 | A:0.93�0.03<br>B:0.93�0.03 |
+| 40 | A:0.12�0.07<br>B:0.12�0.07 | A:0.62�0.07<br>B:0.64�0.07 | A:0.79�0.09<br>B:0.79�0.08 |
 
 ### Failure reasons
 | strategy | failure reason | runs |
 |---|---|---|
-| C global | global replanning failed | 42 |
-| C global | task cannot be reassigned | 3 |
-| B local negotiated | no feasible route even if neighbours yield / group unsolvable | 45 |
-| B local negotiated | task cannot be reassigned | 1 |
-| A single-agent | conflict with an unchanged plan (negotiation disabled) | 93 |
-| A single-agent | task cannot be reassigned | 1 |
+| B local negotiated | no feasible route even if neighbours yield / group unsolvable | 1 |
+| A single-agent | conflict with an unchanged plan (negotiation disabled) | 3 |
 
-### Paired comparison, B (local) vs C (global), runs where both succeeded
-- pairs: 439
-- mean_modified_local: 12.308
-- mean_modified_global: 14.260
-- mean_flowtime_local: 589.535
-- mean_flowtime_global: 528.456
-- mean_repair_ms_local: 286.915
-- mean_repair_ms_global: 1103.166
-- local_modifies_fewer_or_equal: 0.995
-- global_lower_flowtime: 0.884
 
 ### Paired comparison, B (local) vs A (single-agent)
-- pairs: 406
-- mean_modified_local: 10.904
-- mean_modified_single_agent: 10.904
-- mean_flowtime_local: 542.443
-- mean_flowtime_single_agent: 542.985
-- mean_repair_ms_local: 198.946
-- mean_repair_ms_single_agent: 205.095
+- pairs: 42
+- mean_modified_local: 10.810
+- mean_modified_single_agent: 10.810
+- mean_flowtime_local: 575.048
+- mean_flowtime_single_agent: 576.214
+- mean_repair_ms_local: 113.590
+- mean_repair_ms_single_agent: 109.621
 - local_modifies_fewer_or_equal: 1.000
-- single_agent_lower_flowtime: 0.030
+- single_agent_lower_flowtime: 0.071

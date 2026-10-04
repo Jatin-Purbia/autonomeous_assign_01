@@ -57,14 +57,6 @@ def test_baseline_a_rejects_conflicting_repair():
     assert all(plan_key(r.active_plan) == plan_key(r.original_plan) for r in eng.robots.values())
 
 
-def test_baseline_c_global_modifies_at_least_as_many():
-    _, local = run("s5-stress")
-    _, glob = run("s5-stress", "global")
-    assert local.success and glob.success
-    assert glob.num_modified >= local.num_modified
-    assert glob.messages > local.messages
-
-
 def test_tentative_repair_never_replaces_plans_on_failure():
     eng = SimulationEngine(spec(["......."], [rb("A", [0, 0], [([0, 0], [6, 0])])],
                                 [{"id": "D", "type": "cell_blockage", "time": 1, "position": [3, 0]}]))

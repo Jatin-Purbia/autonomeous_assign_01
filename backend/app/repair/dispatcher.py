@@ -3,7 +3,6 @@
 Strategies
     "local"         proposed incremental negotiated repair (Baseline B, the normal mechanism)
     "single_agent"  Baseline A: only directly affected robots replan; a conflict with an unchanged plan is a failure
-    "global"        Baseline C (experimental only): every remaining path is recomputed
 """
 from __future__ import annotations
 
@@ -14,11 +13,11 @@ from ..domain.disruption import Disruption, DisruptionType
 from ..domain.grid import DynamicObstacle
 from ..domain.robot import RobotStatus
 from .affected_set import find_directly_invalidated
-from .local_repair import RepairSession, global_replan
+from .local_repair import RepairSession
 from .models import RepairContext, RepairResult
 from .task_reassignment import NoCapableRobot, insert_emergency, reassign_unfinished
 
-STRATEGIES = ("local", "single_agent", "global")
+STRATEGIES = ("local", "single_agent")
 
 
 def _make_session(ctx: RepairContext, strategy: str, reason: str) -> RepairSession:
@@ -39,7 +38,6 @@ def apply_disruption(ctx: RepairContext, d: Disruption, strategy: str = "local")
     forced: dict = {}
     base_wps: dict = {}
     full: set = set()
-    deps: list = []
     reassignments: list = []
     direct: dict[str, str] = {}
     priority_updates: list[tuple[str, int]] = []
@@ -73,7 +71,6 @@ def apply_disruption(ctx: RepairContext, d: Disruption, strategy: str = "local")
             rid = rec["to"]
             base_wps.setdefault(rid, before[rid])
             direct[rid] = f"received reassigned task {rec['task_id']} from {robot.robot_id}"
-            deps.append((robot.robot_id, rid, f"task {rec['task_id']} reassigned"))
         for rid, why in find_directly_invalidated(ctx.robots, ctx.obstacles, t).items():
             direct.setdefault(rid, why)
         reason = "ROBOT_BREAKDOWN"
@@ -93,14 +90,9 @@ def apply_disruption(ctx: RepairContext, d: Disruption, strategy: str = "local")
     else:  # pragma: no cover
         raise ValueError(f"unsupported disruption {d.type}")
 
-    if strategy == "global":
-        res = global_replan(ctx, direct, forced, reassignments, reason)
-        for rid, prio in priority_updates:
-            pass
-        return res
     session = _make_session(ctx, strategy, reason)
     session.base_wps, session.full_replan, session.forced_plans = base_wps, full, forced
-    session.dependencies, session.reassignments = deps, reassignments
+    session.reassignments = reassignments
     for rid, prio in priority_updates:  # VALUE/PRIORITY_UPDATE: coordinator raises the emergency robot's priority
         session.bus.send("PRIORITY_UPDATE", "COORDINATOR", rid, new_priority=prio, reason="emergency task")
     return session.run(direct)
@@ -109,7 +101,5 @@ def apply_disruption(ctx: RepairContext, d: Disruption, strategy: str = "local")
 def repair_invalidated(ctx: RepairContext, robot_ids: list[str], strategy: str = "local") -> RepairResult:
     """Safety-net repair for plans that turned out invalid at execution time (should not normally happen)."""
     direct = {rid: "next planned step is invalid at execution time" for rid in robot_ids}
-    if strategy == "global":
-        return global_replan(ctx, direct, {}, [], "PLAN_INVALIDATED")
     session = _make_session(ctx, strategy, "PLAN_INVALIDATED")
     return session.run(direct)

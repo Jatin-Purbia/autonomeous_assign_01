@@ -35,7 +35,7 @@ def summarize(rows: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def paired_comparison(rows: Sequence[dict[str, Any]], a: str = "local", b: str = "global") -> dict[str, Any]:
+def paired_comparison(rows: Sequence[dict[str, Any]], a: str = "local", b: str = "single_agent") -> dict[str, Any]:
     """Compare two strategies on runs where *both* succeeded (same seed, same scenario)."""
     by = {}
     for r in rows:

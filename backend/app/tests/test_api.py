@@ -101,7 +101,7 @@ def test_experiment_job_runs_and_exports(tmp_path, monkeypatch):
             break
         time.sleep(0.5)
     assert j["status"] == "done", j
-    assert j["result"]["summary"] and j["done"] == j["total"] == 12
+    assert j["result"]["summary"] and j["done"] == j["total"] == 8
     csv = client.get(f"/api/experiments/{eid}/export?format=csv")
     assert csv.status_code == 200 and "success_rate" in csv.text
     assert client.get(f"/api/experiments/{eid}/export?format=json").json()["config"]["agent_counts"] == [4]

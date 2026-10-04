@@ -10,7 +10,6 @@ import { Panel, inputCls } from "./ui";
 export const STRATEGY_META: Record<Strategy, { label: string; color: string }> = {
   single_agent: { label: "A · single-agent", color: "#f59e0b" },
   local: { label: "B · local negotiated", color: "#2dd4bf" },
-  global: { label: "C · global replanning", color: "#a78bfa" },
 };
 
 const AXIS = { stroke: "#94a3b8", fontSize: 11 };

@@ -18,7 +18,7 @@ def main() -> None:
     sub.add_parser("list", help="list built-in scenarios")
     run = sub.add_parser("run", help="run a scenario to completion")
     run.add_argument("scenario")
-    run.add_argument("--strategy", default="local", choices=["local", "single_agent", "global"])
+    run.add_argument("--strategy", default="local", choices=["local", "single_agent"])
     run.add_argument("--events", action="store_true", help="print the structured event log")
     a = ap.parse_args()
     scenarios = builtin_scenarios()

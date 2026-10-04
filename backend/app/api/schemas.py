@@ -70,7 +70,7 @@ class InitializeRequest(BaseModel):
     scenario_id: Optional[str] = None
     scenario: Optional[ScenarioSpecModel] = None
     random: Optional[RandomScenarioRequest] = None
-    strategy: Literal["local", "single_agent", "global"] = "local"
+    strategy: Literal["local", "single_agent"] = "local"
     seed: int = 0
     dev_checks: bool = True
     repair_config: dict[str, float] = {}
@@ -117,13 +117,13 @@ class CommandResponse(BaseModel):
 
 
 class ExperimentRunRequest(BaseModel):
-    agent_counts: list[int] = [5, 10, 20, 30, 40]
-    densities: list[float] = [0.0, 0.05, 0.10, 0.15, 0.20]
+    agent_counts: list[int] = [5, 20, 40]
+    densities: list[float] = [0.0, 0.10, 0.20]
     disruption_type: Literal["cell_blockage", "robot_breakdown", "emergency_task", "mixed"] = "cell_blockage"
-    repetitions: int = Field(20, ge=1, le=200)
+    repetitions: int = Field(5, ge=1, le=200)
     seed: int = 0
     seeds: Optional[list[int]] = None
-    strategies: list[Literal["single_agent", "local", "global"]] = ["single_agent", "local", "global"]
+    strategies: list[Literal["single_agent", "local"]] = ["single_agent", "local"]
     width: int = 20
     height: int = 14
     tasks_per_robot: int = 1

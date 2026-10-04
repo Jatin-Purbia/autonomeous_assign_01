@@ -50,21 +50,21 @@ def test_experiment_summary_matches_manual_statistics():
 
 def test_all_strategies_run_on_identical_scenarios_and_local_never_collides():
     res = run_experiment(small_cfg(disruption_type="mixed"), workers=1)
-    assert {r["strategy"] for r in res["rows"]} == {"single_agent", "local", "global"}
+    assert {r["strategy"] for r in res["rows"]} == {"single_agent", "local"}
     assert all(r["collisions"] == 0 and not r["error"] for r in res["rows"])
     seeds = {(r["n_agents"], r["density"], r["seed"]) for r in res["rows"]}
-    assert len(res["rows"]) == 3 * len(seeds)
+    assert len(res["rows"]) == 2 * len(seeds)
 
 
 def test_paired_comparison_only_uses_pairs_where_both_succeed():
     rows = [
         {"strategy": "local", "n_agents": 5, "density": .1, "seed": 0, "success": True, "num_modified": 2, "flowtime": 10, "repair_time_ms": 1},
-        {"strategy": "global", "n_agents": 5, "density": .1, "seed": 0, "success": True, "num_modified": 5, "flowtime": 9, "repair_time_ms": 9},
+        {"strategy": "single_agent", "n_agents": 5, "density": .1, "seed": 0, "success": True, "num_modified": 5, "flowtime": 9, "repair_time_ms": 9},
         {"strategy": "local", "n_agents": 5, "density": .1, "seed": 1, "success": True, "num_modified": 1, "flowtime": 8, "repair_time_ms": 1},
-        {"strategy": "global", "n_agents": 5, "density": .1, "seed": 1, "success": False, "num_modified": 0, "flowtime": 0, "repair_time_ms": 0},
+        {"strategy": "single_agent", "n_agents": 5, "density": .1, "seed": 1, "success": False, "num_modified": 0, "flowtime": 0, "repair_time_ms": 0},
     ]
     p = paired_comparison(rows)
-    assert p["pairs"] == 1 and p["mean_modified_local"] == 2 and p["mean_modified_global"] == 5
+    assert p["pairs"] == 1 and p["mean_modified_local"] == 2 and p["mean_modified_single_agent"] == 5
 
 
 def test_invalid_config_rejected():

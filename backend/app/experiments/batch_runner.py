@@ -149,7 +149,6 @@ def run_experiment(cfg: ExperimentConfig, progress: Optional[Callable[[int, int]
     rows.sort(key=lambda r: (r["strategy"], r["n_agents"], r["density"], r["seed"]))
     valid = [r for r in rows if not r.get("skipped")]
     return {"config": cfg.to_dict(), "rows": rows, "summary": summarize(valid),
-            "paired_local_vs_global": paired_comparison(valid, "local", "global"),
             "paired_local_vs_single_agent": paired_comparison(valid, "local", "single_agent"),
             "runtime_s": time.perf_counter() - t0, "total_runs": total}
 
@@ -176,11 +175,12 @@ def export_results(result: dict[str, Any], out_dir: str | Path, name: str) -> di
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Run multi-agent repair experiments")
-    ap.add_argument("--agents", type=int, nargs="+", default=[5, 10, 20, 30, 40])
-    ap.add_argument("--density", type=float, nargs="+", default=[0, 0.05, 0.10, 0.15, 0.20])
+    ap.add_argument("--agents", type=int, nargs="+", default=[5, 20, 40])
+    ap.add_argument("--density", type=float, nargs="+", default=[0, 0.10, 0.20])
     ap.add_argument("--type", default="cell_blockage", choices=["cell_blockage", "robot_breakdown",
                                                                 "emergency_task", "mixed"])
-    ap.add_argument("--reps", type=int, default=20)
+    ap.add_argument("--reps", type=int, default=5)
+    ap.add_argument("--tasks", type=int, default=1, help="tasks (pickup+delivery) per robot")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--strategies", nargs="+", default=list(STRATEGIES))
     ap.add_argument("--workers", type=int, default=None)
@@ -188,7 +188,7 @@ def main() -> None:
     ap.add_argument("--name", default=None)
     a = ap.parse_args()
     cfg = ExperimentConfig(agent_counts=a.agents, densities=a.density, disruption_type=a.type, repetitions=a.reps,
-                           seed=a.seed, strategies=a.strategies)
+                           seed=a.seed, strategies=a.strategies, tasks_per_robot=a.tasks)
 
     def prog(done: int, total: int) -> None:
         print(f"\r{done}/{total} runs", end="", flush=True)

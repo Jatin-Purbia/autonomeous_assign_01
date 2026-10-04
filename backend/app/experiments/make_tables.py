@@ -9,7 +9,7 @@ import sys
 from collections import defaultdict
 from typing import Any
 
-LABEL = {"single_agent": "A single-agent", "local": "B local negotiated", "global": "C global"}
+LABEL = {"single_agent": "A single-agent", "local": "B local negotiated"}
 
 
 def _f(v: Any, d: int = 1) -> str:
@@ -26,13 +26,13 @@ def table(summary: list[dict], metric: str, rows_key: str, cols_key: str, fixed:
         cells = []
         for c in cols:
             parts = []
-            for s in ("single_agent", "local", "global"):
+            for s in ("single_agent", "local"):
                 rec = next((r for r in summary if r["strategy"] == s and r[rows_key] == x and r[cols_key] == c
                             and all(r[k] == v for k, v in fixed.items())), None)
                 if rec is None:
                     continue
                 m, sd = rec.get(f"{metric}_mean"), rec.get(f"{metric}_std")
-                parts.append(f"{ {'single_agent': 'A', 'local': 'B', 'global': 'C'}[s] }:{_f(m, d)}" + (f"±{_f(sd, d)}" if with_std and sd is not None else ""))
+                parts.append(f"{ {'single_agent': 'A', 'local': 'B'}[s] }:{_f(m, d)}" + (f"±{_f(sd, d)}" if with_std and sd is not None else ""))
             cells.append("<br>".join(parts))
         out.append(f"| {x} | " + " | ".join(cells) + " |")
     return "\n".join(out)
@@ -46,7 +46,7 @@ def success_table(summary: list[dict]) -> str:
         cells = []
         for rho in rhos:
             parts = []
-            for s, tag in (("single_agent", "A"), ("local", "B"), ("global", "C")):
+            for s, tag in (("single_agent", "A"), ("local", "B")):
                 rec = next((r for r in summary if r["strategy"] == s and r["n_agents"] == n and r["density"] == rho), None)
                 if rec:
                     parts.append(f"{tag}:{rec['success_rate'] * 100:.0f}%")
@@ -65,8 +65,6 @@ def failure_reasons(rows: list[dict]) -> str:
             key = "conflict with an unchanged plan (negotiation disabled)"
         elif "no feasible route" in reason or "unsolvable" in reason or "no solution" in reason:
             key = "no feasible route even if neighbours yield / group unsolvable"
-        elif "global replanning" in reason:
-            key = "global replanning failed"
         elif "no active robot" in reason or "cannot be recovered" in reason:
             key = "task cannot be reassigned"
         else:
@@ -92,9 +90,6 @@ def main(path: str) -> None:
         print(f"### {title} vs agent count (rows) and density (columns); mean±std over successful runs\n"
               + table(summary, metric, "n_agents", "density", {}, dd) + "\n")
     print("### Failure reasons\n" + failure_reasons(rows) + "\n")
-    print("### Paired comparison, B (local) vs C (global), runs where both succeeded")
-    for k, v in d["paired_local_vs_global"].items():
-        print(f"- {k}: {v:.3f}" if isinstance(v, float) else f"- {k}: {v}")
     print("\n### Paired comparison, B (local) vs A (single-agent)")
     for k, v in d["paired_local_vs_single_agent"].items():
         print(f"- {k}: {v:.3f}" if isinstance(v, float) else f"- {k}: {v}")

@@ -87,24 +87,6 @@ export type RepairMessage = {
   details: Record<string, unknown>;
 };
 
-export type ConflictEdge = {
-  a: string;
-  b: string;
-  kind: "vertex" | "edge_swap" | "shared_resource" | "dependency";
-  time: number | null;
-  position: XY | null;
-  note: string;
-};
-
-export type ConflictGraphData = {
-  label: string;
-  time: number;
-  nodes: string[];
-  edges: ConflictEdge[];
-  affected: string[];
-  direct: string[];
-};
-
 export type RepairSummary = {
   success: boolean;
   strategy: string;
@@ -116,7 +98,6 @@ export type RepairSummary = {
   reasons: Record<string, string>;
   methods: Record<string, string>;
   messages: RepairMessage[];
-  conflict_graphs: ConflictGraphData[];
   diffs: Record<string, { from_time: number; old_suffix: XY[]; new_suffix: XY[]; method: string; reason: string }>;
   conflicts_avoided: number;
   runtime_ms: number;
@@ -165,7 +146,7 @@ export type ServerMessage =
   | { type: "state"; running: boolean; speed: number; strategy: string; state: SimState; events?: SimEvent[] }
   | { type: "error"; message: string };
 
-export type Strategy = "local" | "single_agent" | "global";
+export type Strategy = "local" | "single_agent";
 
 // ---- experiments
 export type ExperimentRequest = {
@@ -199,7 +180,6 @@ export type ExperimentJob = {
   result: {
     summary: SummaryRow[];
     rows: Record<string, unknown>[];
-    paired_local_vs_global: Record<string, number>;
     paired_local_vs_single_agent: Record<string, number>;
     runtime_s: number;
   } | null;

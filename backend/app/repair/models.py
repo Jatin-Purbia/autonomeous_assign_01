@@ -16,10 +16,9 @@ class RepairConfig:
     """All tunable parameters of the repair mechanism (documented in docs/algorithm.md)."""
 
     # local repair strategies
-    max_wait: int = 12            # strategy 1: longest wait inserted at the conflict point
-    max_shift: int = 12           # strategy 2: longest whole-suffix delay
-    detour_window: int = 14       # strategy 3: how far ahead a detour may rejoin the old plan
-    max_order_retries: int = 6    # strategy 4/6: priority orders tried in group repair
+    max_delay: int = 12           # strategy 1: longest wait / whole-suffix delay
+    detour_window: int = 14       # strategy 2: how far ahead a detour may rejoin the old plan
+    max_order_retries: int = 6    # group repair: priority orders tried
     max_expansions: int = 250_000 # per A* call
     # task reassignment  Cost = d(pos,pickup) + d(pickup,delivery) + lambda*Load + mu*RepairImpact
     lambda_load: float = 4.0
@@ -77,9 +76,8 @@ class RepairResult:
     modified: list[str] = field(default_factory=list)          # plan actually changed
     expansions: list[dict[str, Any]] = field(default_factory=list)
     reasons: dict[str, str] = field(default_factory=dict)      # why each agent was modified
-    methods: dict[str, str] = field(default_factory=dict)      # wait|shift|detour|replan|group|extension
+    methods: dict[str, str] = field(default_factory=dict)      # delay|detour|replan|group|extension
     messages: list[Message] = field(default_factory=list)
-    conflict_graphs: list[dict[str, Any]] = field(default_factory=list)
     diffs: dict[str, dict[str, Any]] = field(default_factory=dict)
     conflicts_avoided: int = 0
     runtime_ms: float = 0.0
@@ -93,7 +91,7 @@ class RepairResult:
             "success": self.success, "strategy": self.strategy, "failure_reason": self.failure_reason,
             "direct": self.direct, "affected": self.affected, "modified": self.modified,
             "expansions": self.expansions, "reasons": self.reasons, "methods": self.methods,
-            "messages": [m.to_dict() for m in self.messages], "conflict_graphs": self.conflict_graphs,
+            "messages": [m.to_dict() for m in self.messages],
             "diffs": self.diffs, "conflicts_avoided": self.conflicts_avoided,
             "runtime_ms": round(self.runtime_ms, 3), "delta_completion": self.delta_completion,
             "reassignments": self.reassignments, "objective": self.objective,
