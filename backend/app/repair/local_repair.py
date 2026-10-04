@@ -292,7 +292,6 @@ class RepairSession:
 
     # ------------------------------------------------------------------ negotiation (Contract-Net style)
     def _negotiate(self, a: str, fallback: Optional[tuple[str, Positions]]) -> bool:
-        cfg = self.cfg
         robot = self.robots[a]
         ideal = self._soft_ideal(a)
         if ideal is None:
