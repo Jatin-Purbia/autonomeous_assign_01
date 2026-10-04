@@ -292,6 +292,7 @@ class RepairSession:
 
     # ------------------------------------------------------------------ negotiation (Contract-Net style)
     def _negotiate(self, a: str, fallback: Optional[tuple[str, Positions]]) -> bool:
+        cfg = self.cfg
         robot = self.robots[a]
         ideal = self._soft_ideal(a)
         if ideal is None:
@@ -509,7 +510,6 @@ class RepairSession:
         for rid in changed:
             if rid != self.initiator and rid not in self.forced_plans:
                 self.bus.send("REPAIR_COMMITTED", self.initiator or "SYSTEM", rid, method=self.methods.get(rid))
-        cfg = self.cfg
         runtime = (_time.perf_counter() - t0) * 1000
         return RepairResult(
             success=True, strategy=self.strategy, new_plans=changed, direct=list(self.direct_ids),
