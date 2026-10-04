@@ -35,7 +35,7 @@ export default function RepairInspector({ state }: { state: SimState }) {
     <div className="space-y-3 text-xs">
       <div className="flex flex-wrap items-center gap-2">
         <Chip color={rep.success ? "#4ade80" : "#ef4444"}>{rep.success ? "REPAIRED" : "FAILED"}</Chip>
-        <span className="text-slate-400">strategy <b className="text-slate-200">{rep.strategy}</b> · {rep.runtime_ms.toFixed(1)} ms · {rep.messages.length} msgs · J={rep.objective.toFixed(0)}</span>
+        <span className="text-slate-400">strategy <b className="text-slate-200">{rep.strategy}</b> · {rep.runtime_ms.toFixed(1)} ms · {rep.messages.length} msgs</span>
       </div>
       {rep.failure_reason && <p className="rounded bg-rose-950/60 p-2 text-rose-200">{rep.failure_reason}</p>}
       <div>

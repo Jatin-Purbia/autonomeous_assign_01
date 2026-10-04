@@ -26,6 +26,7 @@ npm-debug.log*
 
 # Experiment outputs: keep the reported default_* runs, ignore ad-hoc ones (e.g. started from the UI)
 backend/experiment_outputs/experiment_*
+backend/experiment_outputs/*.json
 
 # Editors / OS
 .vscode/

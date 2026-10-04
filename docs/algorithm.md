@@ -86,10 +86,9 @@ When agent `a` cannot be repaired locally (or `a` is an emergency robot, or its 
 
 If `a` is *already committed* and a later agent finds no route, already repaired agents are re-opened into the group (needed for completeness).
 
-### Optimisation objective
+### Objective
 
-Lexicographic, implemented as a weighted sum with `W1 >> W2 >> W3, W4`:
-`J = W1*|A_d| + W2*sum(dC_i) + W3*N_msg + W4*T_repair`, with `W1 = 10000, W2 = 100, W3 = 1, W4 = 0.1` (`RepairResult.objective`). Primary minimisation of `|A_d|` is achieved structurally: cheaper strategies that touch no neighbour are always tried first, and a neighbour is only involved when the bid (`w4 = 30` per newly modified robot) or infeasibility demands it.
+Lexicographic: minimise `|A_d|` first, then added completion time, then messages and repair time. `|A_d|` is minimised structurally: cheaper strategies that touch no neighbour are always tried first, and a neighbour is only involved when the bid (`w4 = 30` per newly modified robot) or infeasibility demands it.
 
 ## 7. Baselines
 

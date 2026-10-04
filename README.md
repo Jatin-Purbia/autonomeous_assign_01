@@ -64,14 +64,6 @@ strategy (A / B) and scrub the timeline.
 travelled. Red ring = directly affected robot, orange ring = indirectly affected. The right panel shows the
 affected set, negotiation messages, old-vs-new plans and the event log.
 
-Without the UI:
-
-```bash
-cd backend
-python -m app.cli list
-python -m app.cli run s2-negotiated-repair --strategy local --events
-```
-
 ## How the repair works
 
 1. **Plan**: prioritized Space-Time A\* reserves every robot's full path (cells and swaps).
@@ -101,7 +93,7 @@ python -m app.experiments.batch_runner --type mixed --out experiment_outputs --n
 # options: --agents 5 20 40 --density 0 0.1 0.2 --reps 5 --tasks 1
 ```
 
-This writes `my_run.json`, `my_run_runs.csv` (one row per run) and `my_run_summary.csv` (mean, std, success rate).
+This writes `my_run_runs.csv` (one row per run), `my_run_summary.csv` (mean, std, success rate) and `my_run.json`.
 
 The reported campaign is small on purpose: 4 disruption types x 3 team sizes (5, 20, 40) x 3 obstacle densities
 (0, 0.1, 0.2) x 5 seeds x 2 strategies = 360 runs. Main findings (details in [docs/experiments.md](docs/experiments.md)):

@@ -1,6 +1,6 @@
 # Architecture
 
-The algorithmic engine is a plain Python package with **no dependency on FastAPI or the frontend**. The same code is driven by the REST/WebSocket API, the CLI (`python -m app.cli`), the batch runner (`python -m app.experiments.batch_runner`) and pytest.
+The algorithmic engine is a plain Python package with **no dependency on FastAPI or the frontend**. The same code is driven by the REST/WebSocket API, the batch runner (`python -m app.experiments.batch_runner`) and pytest.
 
 ```
 backend/app
@@ -20,7 +20,7 @@ backend/app
                  builtin_scenarios.py scenario_generator.py
   experiments/   configurations.py  batch_runner.py  statistics.py
   api/           schemas.py (Pydantic)  simulation_routes.py  experiment_routes.py  websocket.py  state.py
-  cli.py  main.py
+  main.py
   tests/
 
 frontend (Next.js / TypeScript / Tailwind / Framer Motion / Recharts)

@@ -31,11 +31,6 @@ class RepairConfig:
     emergency_priority_penalty: float = 1000.0
     emergency_priority_boost: int = 1000
     negotiation_trigger_delay: int = 12  # own yield delay above which negotiation is considered
-    # objective  J = W1|A| + W2*sum(dC) + W3*messages + W4*runtime   (W1 >> W2 >> W3,W4)
-    W1: float = 10_000.0
-    W2: float = 100.0
-    W3: float = 1.0
-    W4: float = 0.1
     # mode switches used by the baselines
     allow_expansion: bool = True
     allow_negotiation: bool = True
@@ -83,7 +78,6 @@ class RepairResult:
     runtime_ms: float = 0.0
     delta_completion: dict[str, int] = field(default_factory=dict)
     reassignments: list[dict[str, Any]] = field(default_factory=list)
-    objective: float = 0.0
     deadlock: bool = False
 
     def summary(self) -> dict[str, Any]:
@@ -94,5 +88,5 @@ class RepairResult:
             "messages": [m.to_dict() for m in self.messages],
             "diffs": self.diffs, "conflicts_avoided": self.conflicts_avoided,
             "runtime_ms": round(self.runtime_ms, 3), "delta_completion": self.delta_completion,
-            "reassignments": self.reassignments, "objective": self.objective,
+            "reassignments": self.reassignments,
         }

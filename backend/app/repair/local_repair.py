@@ -512,12 +512,9 @@ class RepairSession:
                 self.bus.send("REPAIR_COMMITTED", self.initiator or "SYSTEM", rid, method=self.methods.get(rid))
         cfg = self.cfg
         runtime = (_time.perf_counter() - t0) * 1000
-        n_msgs = len(self.bus.messages)
-        objective = cfg.W1 * len(changed) + cfg.W2 * sum(max(0, d) for d in delta.values()) + cfg.W3 * n_msgs \
-            + cfg.W4 * runtime
         return RepairResult(
             success=True, strategy=self.strategy, new_plans=changed, direct=list(self.direct_ids),
             affected=self.affected.ids(), modified=sorted(changed), expansions=list(self.affected.history),
             reasons=dict(self.reasons), methods=dict(self.methods), messages=list(self.bus.messages),
             diffs=diffs, conflicts_avoided=self.conflicts_avoided,
-            runtime_ms=runtime, delta_completion=delta, reassignments=self.reassignments, objective=objective)
+            runtime_ms=runtime, delta_completion=delta, reassignments=self.reassignments)

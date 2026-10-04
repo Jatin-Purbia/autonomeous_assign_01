@@ -103,7 +103,6 @@ export type RepairSummary = {
   runtime_ms: number;
   delta_completion: Record<string, number>;
   reassignments: Record<string, unknown>[];
-  objective: number;
 };
 
 export type SimState = {
