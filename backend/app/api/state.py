@@ -11,16 +11,13 @@ from typing import Any, Optional
 
 from fastapi import WebSocket
 
-from ..domain.disruption import Disruption, DisruptionType
-from ..domain.grid import Position
-from ..domain.task import Task
+from ..domain.disruption import Disruption
 from ..experiments.batch_runner import export_results, run_experiment
 from ..experiments.configurations import ExperimentConfig
 from ..repair.models import RepairConfig
 from ..simulation.builtin_scenarios import builtin_scenarios
 from ..simulation.engine import EngineConfig, SimulationEngine
-from ..simulation.scenario_generator import generate_random_scenario
-from ..simulation.scenario_loader import ScenarioError, build_scenario
+from ..simulation.scenario_loader import build_scenario
 
 OUTPUT_DIR = Path(__file__).resolve().parents[2] / "experiment_outputs"
 

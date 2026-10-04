@@ -57,12 +57,6 @@ class Robot:
     def load(self) -> int:
         return len(self.unfinished_tasks())
 
-    @property
-    def is_active(self) -> bool:
-        return self.status not in (RobotStatus.BROKEN, RobotStatus.DONE)
-
-    def plan_end_time(self) -> int:
-        return self.active_plan[-1].time if self.active_plan else 0
 
 
 def pos_at(plan: list[TimedPosition], t: int) -> Optional[Position]:
@@ -74,7 +68,3 @@ def pos_at(plan: list[TimedPosition], t: int) -> Optional[Position]:
 
 def make_plan(positions: list[Position], start_time: int = 0) -> list[TimedPosition]:
     return [TimedPosition(p, start_time + i) for i, p in enumerate(positions)]
-
-
-def plan_positions(plan: list[TimedPosition]) -> list[Position]:
-    return [tp.position for tp in plan]

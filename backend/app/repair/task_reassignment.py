@@ -7,8 +7,7 @@ RepairImpact(a_j) = number of *other* robots whose remaining plan passes through
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 from ..domain.grid import Position, manhattan
 from ..domain.robot import Robot, RobotStatus

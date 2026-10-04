@@ -4,8 +4,6 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
 STRATEGIES = ("single_agent", "local", "global")
-STRATEGY_LABELS = {"single_agent": "A: single-agent repair", "local": "B: local negotiated repair",
-                   "global": "C: global replanning"}
 DISRUPTION_KINDS = ("cell_blockage", "robot_breakdown", "emergency_task", "mixed")
 
 

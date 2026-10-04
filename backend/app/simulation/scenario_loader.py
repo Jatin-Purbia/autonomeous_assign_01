@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 import copy
-import json
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from ..domain.disruption import Disruption, DisruptionType
 from ..domain.grid import Grid, Position
@@ -92,7 +90,3 @@ def disruption_to_spec(d: Disruption) -> dict[str, Any]:
     if d.duration is not None:
         out["duration"] = d.duration
     return out
-
-
-def load_scenario_file(path: str | Path) -> dict[str, Any]:
-    return json.loads(Path(path).read_text(encoding="utf-8"))

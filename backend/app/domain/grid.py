@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Iterable, NamedTuple, Optional
 
 
@@ -29,17 +28,6 @@ MOVES: tuple[tuple[int, int], ...] = ((0, -1), (0, 1), (1, 0), (-1, 0))
 
 def manhattan(a: Position, b: Position) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
-
-
-class CellState(str, Enum):
-    FREE = "free"
-    STATIC_OBSTACLE = "static_obstacle"
-    DYNAMIC_OBSTACLE = "dynamic_obstacle"
-    PICKUP = "pickup"
-    DELIVERY = "delivery"
-    ROBOT = "robot"
-    RESERVED = "reserved"
-    BROKEN_ROBOT = "broken_robot"
 
 
 @dataclass
@@ -127,9 +115,6 @@ class DynamicObstacle:
     def blocks(self, t: int) -> bool:
         return t >= self.start_time and (self.end_time is None or t <= self.end_time)
 
-    def active_at(self, t: int) -> bool:
-        return self.blocks(t)
-
 
 class ObstacleMap:
     """Index of dynamic obstacles known to the system (activated so far)."""
@@ -162,18 +147,8 @@ class ObstacleMap:
                 return True
         return False
 
-    def blocked_ever_after(self, p: Position, t: int) -> bool:
-        """True if ``p`` is blocked at some time >= t."""
-        for o in self._by_cell.get(p, ()):
-            if o.end_time is None or o.end_time >= t:
-                return True
-        return False
-
     def all(self) -> list[DynamicObstacle]:
         return list(self._by_id.values())
-
-    def active_at(self, t: int) -> list[DynamicObstacle]:
-        return [o for o in self._by_id.values() if o.blocks(t)]
 
     def latest_finite_end(self) -> int:
         ends = [o.end_time for o in self._by_id.values() if o.end_time is not None]

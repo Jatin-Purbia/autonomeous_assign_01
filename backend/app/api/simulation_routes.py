@@ -9,7 +9,7 @@ from ..domain.grid import Position
 from ..domain.task import Task
 from ..repair.models import RepairConfig
 from ..simulation.scenario_generator import generate_random_scenario
-from ..simulation.scenario_loader import ScenarioError, build_scenario
+from ..simulation.scenario_loader import ScenarioError
 from .schemas import (BlockCellRequest, BreakRobotRequest, CommandResponse, DisruptionResponse,
                       EmergencyTaskRequest, InitializeRequest, RandomScenarioRequest, ScenarioSpecModel,
                       ScenarioSummary, SpeedRequest)

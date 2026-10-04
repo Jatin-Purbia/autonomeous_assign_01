@@ -4,7 +4,7 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from ..domain.grid import Grid, Position
+from ..domain.grid import Grid
 
 
 def warehouse_map(width: int, height: int) -> list[str]:

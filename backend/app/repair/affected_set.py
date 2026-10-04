@@ -1,7 +1,7 @@
 """Affected-set tracking A_d and detection of the initial (direct) affected set A_d^0."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
 from ..domain.grid import ObstacleMap

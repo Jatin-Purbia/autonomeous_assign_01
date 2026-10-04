@@ -1,95 +1,70 @@
-# Incremental Multi-Agent Path Repair for Dynamic Automated Warehouses
+# Incremental Multi-Agent Path Repair for Dynamic Warehouses
 
-An interactive, **working algorithmic simulation** of robots in an automated warehouse. Robots first receive collision-free
-plans from prioritized **Space-Time A\*** (vertex + edge-swap reservations). While they execute, disruptions arrive:
+A working simulation of robots in an automated warehouse. Robots get collision-free plans from prioritized
+**Space-Time A\***. While they move, things go wrong:
 
-1. a grid cell is suddenly **blocked**,
+1. a grid cell is **blocked**,
 2. a robot **breaks down**,
-3. a high-priority **emergency task** is assigned.
+3. an **emergency task** arrives.
 
-The system repairs **only the necessary parts of the existing plans** (no global replanning): it identifies the directly
-affected robots, tries cheap local repairs (wait, shift, detour), lets neighbours **negotiate** with Contract-Net style bids,
-expands the affected set only when unavoidable, and preserves every unaffected plan and every executed prefix. Global
-replanning exists only as an experimental baseline.
+Instead of replanning everyone, the system **repairs only the plans that need it**: it finds the affected robots,
+tries cheap fixes first (wait, shift, detour), lets neighbours **negotiate** when that is not enough, and leaves every
+other plan untouched. Global replanning exists only as a baseline for comparison.
 
 ![Simulation](docs/screenshots/simulation_repair.png)
 
-## What is inside
+## Project layout
 
-| Part | Where |
+| Folder | Content |
 |---|---|
-| Engine (planning, repair, simulation, metrics) - independent of the UI | `backend/app/{domain,planning,repair,simulation}` |
-| REST + WebSocket API (FastAPI, Pydantic) | `backend/app/api` |
-| Batch experiments, statistics, CSV/JSON export | `backend/app/experiments` |
-| Interactive UI + experiment dashboard (Next.js, TypeScript, Tailwind, Framer Motion, Recharts) | `frontend/` |
-| Tests (pytest, 75 tests) | `backend/app/tests` |
-| Documentation | `docs/` (`architecture.md`, `algorithm.md`, `experiments.md`, `assignment_report_outline.md`) |
+| `backend/app/domain`, `planning`, `repair`, `simulation` | The engine (no UI dependency): grid, A\*, repair, simulator |
+| `backend/app/api` | FastAPI REST + WebSocket server |
+| `backend/app/experiments` | Batch runner, statistics, table generation |
+| `backend/app/tests` | 75 pytest tests |
+| `backend/experiment_outputs` | Results of the reported experiments (CSV / JSON) |
+| `frontend/` | Next.js UI: live simulation and experiment dashboard |
+| `docs/` | `architecture.md`, `algorithm.md`, `experiments.md`, per-disruption result tables |
 
-## Installation
+## Quick start
 
-Requirements: Python 3.11+ (developed on 3.12), Node.js 20+.
+Requires Python 3.11+ and Node.js 20+.
 
 ```bash
-# backend
+# 1. backend  (http://localhost:8000, API docs at /docs)
 cd backend
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-
-# frontend
-cd ../frontend
-npm install
-```
-
-## Run
-
-```bash
-# terminal 1 - backend (http://localhost:8000, interactive API docs at /docs)
-cd backend
 python -m uvicorn app.main:app --port 8000
 
-# terminal 2 - frontend (http://localhost:3000)
+# 2. frontend (new terminal, http://localhost:3000)
 cd frontend
-npm run dev          # or: npm run build && npm start
+npm install
+npm run dev
 ```
 
-On Windows, `.\start.ps1` (repo root) frees ports 8000/3000 if a stale process holds them and opens both servers in
-their own windows. If you see `[Errno 10048] ... 8000` or `EADDRINUSE ... 3000`, a server is already running on that
-port: use it, or stop it with `netstat -ano | findstr :8000` then `taskkill /PID <pid> /F`.
+The frontend expects the backend at `http://localhost:8000` (change with `NEXT_PUBLIC_API_URL`).
+If a port is already in use, a server is probably still running; stop it or reuse it.
 
-The frontend talks to `http://localhost:8000` (override with `NEXT_PUBLIC_API_URL`).
+## Using the app
 
-## Tests
+Open <http://localhost:3000/simulation>, choose a scenario, click **Load scenario**, then **Start** (or **Step**).
 
-```bash
-cd backend
-python -m pytest            # 75 tests: A*, MAPF, engine, repair, negotiation, breakdown, emergency, metrics, API, experiments
-cd ../frontend
-npx tsc --noEmit            # type check
-```
+| # | Built-in scenario | What happens |
+|---|---|---|
+| 1 | Cell blockage | One robot detours; all other plans stay identical |
+| 2 | Negotiated repair | A repaired route clashes with a neighbour, who yields after bidding |
+| 3 | Robot breakdown | A robot stops in a one-wide aisle; its task is reassigned |
+| 4 | Emergency task | A high-priority task makes a neighbour yield |
+| 5 | Stress | 30 robots, 12 timed blockages and a breakdown |
 
-## Demonstration (5 built-in scenarios)
+You can also block cells, break a robot, add an emergency task, generate random scenarios, switch the repair
+strategy (A / B / C) and scrub the timeline.
 
-Open <http://localhost:3000/simulation>, pick a scenario, press **Load scenario**, then **Start** (or **Step**).
+**Reading the picture:** dashed line = original plan, thick solid line = repaired part, faint line = already
+travelled. Red ring = directly affected robot, orange ring = indirectly affected. The right panel shows the
+affected set, negotiation messages, old-vs-new plans, the conflict graph and the event log.
 
-| # | Scenario | What to watch | Expected |
-|---|---|---|---|
-| 1 | Cell blockage | R1 detours around a blocked cell; the other plans stay identical | Impact = 1, 0 messages |
-| 2 | Negotiated repair | R1's repaired route collides with R3's reserved route; R1 negotiates, R3 yields | Impact = 2, bids in the Repair tab |
-| 3 | Robot breakdown | R2 stops in a 1-wide aisle, its cell is blocked, its task is reassigned, neighbours are repaired | task moves to the best robot |
-| 4 | Emergency task | R1 gets a high-priority task; its own yield bid is huge, so R2 yields | R3-R5 untouched |
-| 5 | Stress | 30 robots, 12 timed blockages and a breakdown | the affected set grows |
-
-In the UI you can also: click **Block cell** and click the grid; select a robot and press **Break**; use **Emergency task** and
-click a pickup then a delivery cell; type a timestep (or leave it blank for "now") and a blockage duration; remove a
-temporary obstacle; generate a random scenario from a seed; switch the repair strategy (A/B/C); tune the assignment weights
-lambda and mu; scrub the **timeline** to inspect earlier timesteps.
-
-Visual language: thin **dashed** line = original plan, thick **solid bright** line = repaired section, faint line = executed
-path. **Red ring** = directly affected robot, **orange ring** = indirectly affected robot. The right-hand panel shows the
-affected set, expansion history, negotiation messages, *why* each agent was modified, old-vs-new suffix comparison, the
-**conflict graph** and the structured event log.
-
-From the command line (no UI):
+Without the UI:
 
 ```bash
 cd backend
@@ -97,47 +72,60 @@ python -m app.cli list
 python -m app.cli run s2-negotiated-repair --strategy local --events
 ```
 
+## How the repair works
+
+1. **Plan**: prioritized Space-Time A\* reserves every robot's full path (cells and swaps).
+2. **Detect**: a disruption invalidates the remaining plans of some robots, the *directly affected set*.
+3. **Repair in order of cost**: wait, temporal shift, local detour, single-agent replan.
+4. **Negotiate**: if that fails, the robots blocking the ideal route bid (Contract-Net style). The cheapest option wins.
+5. **Expand** the affected set only if negotiation cannot resolve it, then replan that small group.
+6. **Commit** only after all plans are validated against each other and all obstacles. Executed steps never change.
+
+Breakdown tasks go to the robot with the lowest `distance + λ·load + μ·repair impact`. Emergency tasks are inserted into the
+best robot's queue with a raised priority. Details and complexity: [docs/algorithm.md](docs/algorithm.md).
+
+## Strategies compared
+
+| | Strategy | Idea |
+|---|---|---|
+| A | Single-agent | Repair only the directly affected robots; no negotiation |
+| B | **Local negotiated** (proposed) | Steps 1-6 above |
+| C | Global replanning | Replan every active robot (baseline) |
+
 ## Experiments
 
-Dashboard: <http://localhost:3000/experiments>. Configure agent counts (default 5,10,20,30,40), obstacle densities
-(0, 0.05, 0.10, 0.15, 0.20), disruption type (cell blockage / breakdown / emergency / mixed), repetitions (default 20) and a
-first seed or an explicit seed list, then run. The 8 charts (with error bars and a success-rate heatmap) can be exported as CSV/JSON.
-
-From the command line (parallel, deterministic):
+Dashboard: <http://localhost:3000/experiments>. Or from the command line (parallel and deterministic):
 
 ```bash
 cd backend
 python -m app.experiments.batch_runner --type mixed --reps 20 --seed 0 --out experiment_outputs --name my_run
 ```
 
-Outputs: `<name>.json`, `<name>_runs.csv` (one row per run) and `<name>_summary.csv` (mean / sample std / success rate per
-strategy, agent count and density). Results of the runs performed for this project and their analysis: `docs/experiments.md`.
+This writes `my_run.json`, `my_run_runs.csv` (one row per run) and `my_run_summary.csv` (mean, std, success rate).
 
-## Algorithm summary
+The reported campaign has 6000 runs (4 disruption types × 5 team sizes × 5 obstacle densities × 20 seeds × 3 strategies).
+Main findings (details in [docs/experiments.md](docs/experiments.md)):
 
-* **Initial planning** - prioritized Space-Time A\* over states `(x, y, t, q)` with `f = g + h`, Manhattan-chain heuristic,
-  waiting allowed, reservation of complete paths, a few priority-order retries.
-* **Disruption** - `A_d^0` = agents whose *remaining* plan is invalidated; only their future reservations are released.
-* **Repair order** - wait, temporal shift, local detour (rejoining the old plan), single-agent replan, then negotiation with
-  the neighbours blocking the agent's ideal route (`Bid = w1*dC + w2*dL + w3*P + w4*M`), priority exchange, affected-set expansion
-  `A <- A U {a_j}`, group Space-Time A\*. Everything is validated against all fixed reservations and obstacles before an atomic commit.
-* **Breakdown** - the robot stops, its cell is blocked, unfinished tasks are reassigned by
-  `Cost = d(pos,pickup) + d(pickup,delivery) + lambda*Load + mu*RepairImpact`.
-* **Emergency** - the task is inserted into the best robot's sequence and its priority is raised; lower-priority robots yield.
-* **Objective** - lexicographic: minimise `|A_d|`, then added completion time, then messages and repair time.
+* B succeeds as often as C (about 95 %) and far more often than A (about 86 %).
+* B changes fewer robots than C (12.3 vs 14.6 per run on average) and is about 4× faster.
+* B needs roughly 12 messages per run, C about 450.
+* C finds somewhat shorter overall paths (B's flowtime is about 13 % higher).
+* No collisions occurred in any run.
 
-Details and complexity: `docs/algorithm.md`.
+## Tests
+
+```bash
+cd backend && python -m pytest        # 75 tests
+cd frontend && npx tsc --noEmit       # type check
+```
 
 ## Limitations
 
-* Prioritized planning is incomplete; some solvable instances are reported as failed, and a failed repair ends the run.
-* Robots leave the grid after their last delivery (no parked robots); a broken robot stopping on another robot's pickup or
-  delivery cell makes that task unreachable.
-* Blockage durations are known when the blockage is announced; capacity-1 robots; instantaneous pickup/delivery.
-* One interactive simulation per backend process; results are for a synthetic shelf-and-aisle layout.
-* The broken robot counts as a modified agent; see `docs/algorithm.md` section 10 for all metric definitions and caveats.
+* Prioritized planning is incomplete: some solvable cases are reported as failures, and a failed repair ends the run.
+* Robots leave the grid after their last delivery; a robot that breaks down on someone's pickup or delivery cell makes
+  that task unreachable.
+* A blockage's duration is known when it is announced; robots carry one parcel; pickup and delivery are instantaneous.
+* One interactive simulation per backend process; results come from a synthetic shelf-and-aisle map.
 
-## Future work
-
-Complete repair (e.g. conflict-based search on the affected group), parked robots with re-entry, service times and charging,
+**Future work:** complete group repair (e.g. conflict-based search), parked robots, charging and service times,
 multi-item capacity, learned negotiation weights, real warehouse traces.

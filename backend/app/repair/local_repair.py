@@ -19,19 +19,18 @@ from __future__ import annotations
 import random
 import time as _time
 from collections import Counter
-from dataclasses import replace
 from typing import Any, Optional, Sequence
 
-from ..domain.grid import Position, TimedPosition
+from ..domain.grid import Position
 from ..domain.metrics import plan_key
-from ..domain.robot import Robot, RobotStatus, make_plan
+from ..domain.robot import RobotStatus, make_plan
 from ..planning.heuristics import completes_waypoints, waypoint_times
 from ..planning.reservation_table import ReservationTable
 from ..planning.space_time_astar import PlanningContext, SoftConstraints, space_time_astar
 from ..simulation.event_log import EventType
 from .affected_set import AffectedSet
 from .conflict_graph import build_conflict_graph
-from .models import Message, Plan, RepairConfig, RepairContext, RepairResult
+from .models import Plan, RepairConfig, RepairContext, RepairResult
 from .negotiation import Bid, MessageBus, compute_bid, is_emergency, priority_penalty
 from .repair_validation import first_invalid_index, prefixes_preserved, suffix_valid, validate_all
 

@@ -67,11 +67,6 @@ def find_conflicts(
     return out
 
 
-def has_conflicts(plans: Mapping[str, Sequence[TimedPosition]], from_time: int = 0,
-                  obstacles: Optional[ObstacleMap] = None) -> bool:
-    return bool(find_conflicts(plans, from_time, obstacles, limit=1))
-
-
 def check_adjacent_steps(plan: Sequence[TimedPosition]) -> bool:
     """Every step is a wait or a unit N/S/E/W move and times are consecutive."""
     for a, b in zip(plan, plan[1:]):

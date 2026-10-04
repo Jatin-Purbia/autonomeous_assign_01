@@ -6,7 +6,7 @@ Strong edges (vertex, edge_swap, dependency) define the *local component* around
 """
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
@@ -47,19 +47,6 @@ class ConflictGraph:
             elif e.b == rid:
                 out.add(e.a)
         return out
-
-    def component(self, rid: str, kinds: Optional[set[str]] = None) -> set[str]:
-        """Connected component of ``rid`` using edges of the given kinds (default: strong edges)."""
-        kinds = STRONG if kinds is None else kinds
-        seen = {rid}
-        dq = deque([rid])
-        while dq:
-            u = dq.popleft()
-            for v in self.neighbours(u, kinds):
-                if v not in seen:
-                    seen.add(v)
-                    dq.append(v)
-        return seen
 
     def to_dict(self, affected: Optional[Iterable[str]] = None, direct: Optional[Iterable[str]] = None) -> dict[str, Any]:
         return {"label": self.label, "time": self.time, "nodes": self.nodes,

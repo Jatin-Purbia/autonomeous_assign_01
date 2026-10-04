@@ -12,16 +12,15 @@ The engine is independent of the frontend: the API layer only calls ``step``/``s
 """
 from __future__ import annotations
 
-import time as _time
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from ..domain.disruption import Disruption, DisruptionType
-from ..domain.grid import DynamicObstacle, ObstacleMap, Position, TimedPosition
+from ..domain.disruption import Disruption
+from ..domain.grid import ObstacleMap, Position, TimedPosition
 from ..domain.metrics import (DisruptionImpact, SimulationResult, flowtime, makespan, modified_agents,
                               plan_key)
 from ..domain.robot import Robot, RobotStatus, pos_at
-from ..domain.task import Task, TaskStatus
+from ..domain.task import TaskStatus
 from ..planning.collision_detection import check_adjacent_steps, find_conflicts
 from ..planning.prioritized_mapf import apply_initial_plans, plan_all
 from ..planning.reservation_table import ReservationTable
@@ -87,8 +86,6 @@ class SimulationEngine:
         self.original_path_length = 0
         self.last_repair: Optional[dict[str, Any]] = None
         self.initial_plan_info: dict[str, Any] = {}
-        self._obs_counter = 0
-        self._dyn_blocked_total = 0
         self.initialize()
 
     def initialize(self) -> None:
@@ -205,8 +202,6 @@ class SimulationEngine:
         self.log.add(t, EventType.DISRUPTION_ACTIVATED, [d.affected_robot_id] if d.affected_robot_id else [],
                      d.type.value.upper(), {"disruption_id": d.disruption_id,
                                             **disruption_to_spec(d)})
-        if d.type == DisruptionType.CELL_BLOCKAGE:
-            self._dyn_blocked_total += 1
         ctx = self._repair_context()
         before = {rid: list(r.active_plan) for rid, r in self.robots.items()}
         try:
@@ -537,7 +532,3 @@ class SimulationEngine:
             "scenario": {"id": self.scenario.scenario_id, "name": self.scenario.spec.get("name", ""),
                          "description": self.scenario.spec.get("description", "")},
         }
-
-    def new_obstacle_id(self) -> str:
-        self._obs_counter += 1
-        return f"OBS{self._obs_counter}"

@@ -30,6 +30,3 @@ class DisruptionScheduler:
     @property
     def pending(self) -> list[Disruption]:
         return list(self._pending)
-
-    def has_pending(self) -> bool:
-        return bool(self._pending)

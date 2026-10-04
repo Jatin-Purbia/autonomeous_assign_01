@@ -81,9 +81,6 @@ def failure_reasons(rows: list[dict]) -> str:
 def main(path: str) -> None:
     d = json.load(open(path, encoding="utf-8"))
     summary, rows = d["summary"], d["rows"]
-    rhos = sorted({r["density"] for r in summary})
-    ns = sorted({r["n_agents"] for r in summary})
-    mid_rho, mid_n = rhos[len(rhos) // 2], ns[len(ns) // 2]
     print(f"Config: {json.dumps({k: v for k, v in d['config'].items() if k not in ('seeds',)})}\n")
     print(f"Total runs: {d['total_runs']}, wall time {d['runtime_s']:.0f} s\n")
     print("### Success rate (share of runs completing all tasks)\n" + success_table(summary) + "\n")
